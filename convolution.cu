@@ -4,12 +4,12 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#define h_k 3
-#define w_k 3
-#define h_m 5
-#define w_m 5
-#define stride 1
-#define padding 1
+#define h_k 5
+#define w_k 5
+#define h_m 9
+#define w_m 9
+#define stride 2
+#define padding 2
 
 __constant__ int kernel[h_k * w_k];
 
@@ -29,13 +29,12 @@ __global__ void kernel_function(int *in, int *out, int new_h, int new_w){
         int new_idx = idx * stride - c + padding;
         int new_idy = idy * stride - r + padding;
 
-        for(i = 0; i < h_k; i++){
-            for(j = 0; j < w_k; j++){
+        for(i = -r; i <= r; i++){
+            for(j = -c; j <= c; j++){
                 val = ((new_idy + i) < 0 || (new_idy + i) >= h_m || (new_idx + j) < 0 || (new_idx + j) >= w_m) ? 0 : in[(new_idy + i) * w_m + new_idx + j];
-                tmp += kernel[i * w_k + j] * val;
+                tmp += kernel[(i+1) * w_k + (j+1)] * val;
             }
         }
-        printf("(%02d, %02d)\t%d\n", new_idy, new_idx, tmp);
         out[idy * new_w + idx] = tmp;
     }
 }
@@ -44,10 +43,10 @@ int main(int argc, char **argv){
 
     srand(time(NULL));
 
-    int host_kernel[w_k * h_k] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
-
+    int host_kernel[w_k * h_k];
+    for(int i = 0; i< w_k * h_k; i++) host_kernel[i] = 1;
     int *host_input = (int *)malloc(sizeof(int) * h_m * w_m);
-    for(int i = 0; i < h_m * w_m; i++) host_input[i] = i;
+    
     int new_h = (h_m + 2 * padding - h_k) / stride + 1;
     int new_w = (w_m + 2 * padding - w_k) / stride + 1;
     int *host_res = (int *)malloc(sizeof(int) * new_h * new_w);

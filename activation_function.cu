@@ -46,7 +46,7 @@ __global__ void leakyRelu(float *in){
 
         max(0.0, in[idy * w_m + idx]) + (-leakyReluSlope) * min(0.0, in[idy * w_m + idx]);
 
-        in[idy * w_m + idx] = max(, in[idy * w_m + idx]);
+        in[idy * w_m + idx] = max(0.0, in[idy * w_m + idx]);
     }
 }
 

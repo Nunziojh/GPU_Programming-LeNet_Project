@@ -87,6 +87,22 @@ __global__ void avg_pooling(float *in, float *out, int h, int w, int new_h, int 
     }
 }
 
+__global__ void matrix_product(float *in, float *weights, float *res, int w_weights, int h_in, int w_in){
+    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+    int idy = blockDim.y * blockIdx.y + threadIdx.y;
+
+    if(idx < w_weights && idy < h_in){
+
+        float tmp = 0;
+        in = in + idy * w_in;       //Inutile
+        for(int i = 0, j = 0; i < w_in; i++, j += w_weights){
+            tmp += in[i] * weights[j + idx];
+        }
+
+        res[idy * w_weights + idx] = tmp;
+    }
+}
+
 __global__ void tanh(float *in, int w, int h){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
@@ -98,73 +114,121 @@ __global__ void tanh(float *in, int w, int h){
 }
 
 int main(){
-
     srand(time(NULL));
+
     int padding = 0;
     int stride_c = 1;
     int stride_p = 2;
     int kernel_num_first_layer = 6;
     int kernel_num_second_layer = 16;
+    int kernel_num_third_layer = 120;
+    int fc_first_dim = 120;
+    int fc_second_dim = 84;
+    int fc_third_dim = 10;
 
-    int in_h = H;
-    int in_w = W;
+    int in_h = 32;
+    int in_w = 32;
     int out_h = (in_h + 2 * padding - KERNEL_DIM) / stride_c + 1;
     int out_w = (in_w + 2 * padding - KERNEL_DIM) / stride_c + 1;
 
     float *kernels_first_layer = (float *) malloc(sizeof(float) * KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer);
     float *kernels_second_layer = (float *) malloc(sizeof(float) * KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer * kernel_num_second_layer);
+    float *kernels_third_layer = (float *) malloc(sizeof(float) * KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer * kernel_num_third_layer);
+    float *fc_first_layer = (float *) malloc(sizeof(float) * fc_first_dim * fc_second_dim);
+    float *fc_second_layer = (float *) malloc(sizeof(float) * fc_second_dim * fc_third_dim);
     for(int i = 0; i < KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer; i++) kernels_first_layer[i] = (float)rand() / (float)RAND_MAX;
-    for(int i = 0; i < KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer * kernel_num_second_layer; i++) kernels_first_layer[i] = (float)rand() / (float)RAND_MAX;
+    for(int i = 0; i < KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer * kernel_num_second_layer; i++) kernels_second_layer[i] = (float)rand() / (float)RAND_MAX;
+    for(int i = 0; i < KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer * kernel_num_third_layer; i++) kernels_third_layer[i] = (float)rand() / (float)RAND_MAX;
+    for(int i = 0; i < fc_first_dim * fc_second_dim; i++) fc_first_layer[i] = (float)rand() / (float)RAND_MAX;
+    for(int i = 0; i < fc_second_dim * fc_third_dim; i++) fc_second_layer[i] = (float)rand() / (float)RAND_MAX;
+
+    float *kernels_first_layer_dev, *kernels_second_layer_dev, *kernels_third_layer_dev, *fc_first_layer_dev, *fc_second_layer_dev;
+    cudaMalloc((void **)&kernels_first_layer_dev, sizeof(float) * KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer);
+    cudaMalloc((void **)&kernels_second_layer_dev, sizeof(float) * KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer * kernel_num_second_layer);
+    cudaMalloc((void **)&kernels_third_layer_dev, sizeof(float) * KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer * kernel_num_third_layer);
+    cudaMalloc((void **)&fc_first_layer_dev, sizeof(float) * fc_first_dim * fc_second_dim);
+    cudaMalloc((void **)&fc_second_layer_dev, sizeof(float) * fc_second_dim * fc_third_dim);
 
     float *img = (float *) malloc(sizeof(float) * in_h * in_w);
     for(int i = 0; i < in_w * in_w; i++) img[i] = i;
 
-    float *img_dev, *dev_res;
+    float *img_dev, *first_conv;
     cudaMalloc((void **)&img_dev, sizeof(float) * in_w * in_w);
-    cudaMalloc((void **)&dev_res, sizeof(float) * out_w * out_h * kernel_num_first_layer);
+    cudaMalloc((void **)&first_conv, sizeof(float) * out_w * out_h * kernel_num_first_layer);
 
     cudaMemcpy(img_dev, img, sizeof(float) * in_w * in_h, cudaMemcpyHostToDevice);
 
     dim3 block = {out_w, out_h};
     dim3 grid = {out_w / 32 + 1, out_h / 32 + 1};
-    
     for(int i = 0; i < kernel_num_first_layer; i++){
-        convolution<<<grid, block>>>(img_dev, dev_res + (i * out_h * out_w), kernels_first_layer + (i * KERNEL_DIM * KERNEL_DIM), out_h, out_w, padding, stride_c);
-        in_h = out_h;
-        in_w = out_w;
-        tanh<<<grid, block>>>(dev_res + (i * in_h * in_w), in_w, in_h);
-        out_h = (in_h - POOLING_WINDOW_SIZE) / stride_p + 1;
-        out_w = (in_w - POOLING_WINDOW_SIZE) / stride_p + 1;
-        block = {out_w, out_h};
-        grid = {out_w / 32 + 1, out_h / 32 + 1};
-        avg_pooling<<<grid, block>>>(dev_res + (i * in_h * in_w), dev_res + (i * out_h * out_w), in_h, in_w, out_h, out_w, stride_p);
-        in_h = out_h;
-        in_w = out_w;
-        tanh<<<grid, block>>>(dev_res + (i * in_h * in_w), in_w, in_h);
+        convolution<<<grid, block>>>(img_dev, first_conv + (i * out_h * out_w), kernels_first_layer_dev + (i * KERNEL_DIM * KERNEL_DIM), out_h, out_w, padding, stride_c);
+        tanh<<<grid, block>>>(first_conv + (i * out_h * out_w), out_w, out_h);
     }
 
-    
+    in_h = out_h;
+    in_w = out_w; 
+    out_h = (in_h - POOLING_WINDOW_SIZE) / stride_p + 1;
+    out_w = (in_w - POOLING_WINDOW_SIZE) / stride_p + 1;
+    float *first_pool;
+    cudaMalloc((void **)&first_pool, sizeof(float) * out_w * out_h * kernel_num_first_layer);
+    block = {out_w, out_h};
+    grid = {out_w / 32 + 1, out_h / 32 + 1};
+    for(int i = 0; i < kernel_num_first_layer; i++){
+        avg_pooling<<<grid, block>>>(first_conv + (i * in_h * in_w), first_pool + (i * out_h * out_w), in_h, in_w, out_h, out_w, stride_p);
+        tanh<<<grid, block>>>(first_pool + (i * out_h * out_w), out_w, out_h);
+    }
 
     in_h = out_h;
     in_w = out_w;
     out_h = (in_h + 2 * padding - KERNEL_DIM) / stride_c + 1;
     out_w = (in_w + 2 * padding - KERNEL_DIM) / stride_c + 1;
-
-    dim3 block = {out_w, out_h};
-    dim3 grid = {out_w / 32 + 1, out_h / 32 + 1};
-
+    float *second_conv;
+    cudaMalloc((void **)&second_conv, sizeof(float) * out_w * out_h * kernel_num_second_layer);
+    block = {out_w, out_h};
+    grid = {out_w / 32 + 1, out_h / 32 + 1};
     for(int i = 0; i < kernel_num_second_layer; i++){
-        convolution<<<grid, block>>>(img_dev, dev_res + (i * out_h * out_w), kernels_second_layer + (i * KERNEL_DIM * KERNEL_DIM), out_h, out_w, padding, stride_c);
-        in_h = out_h;
-        in_w = out_w;
-        tanh<<<grid, block>>>(dev_res + (i * in_h * in_w), in_w, in_h);
-        out_h = (in_h - POOLING_WINDOW_SIZE) / stride_p + 1;
-        out_w = (in_w - POOLING_WINDOW_SIZE) / stride_p + 1;
-        block = {out_w, out_h};
-        grid = {out_w / 32 + 1, out_h / 32 + 1};
-        avg_pooling<<<grid, block>>>(dev_res + (i * in_h * in_w), dev_res + (i * out_h * out_w), in_h, in_w, out_h, out_w, stride_p);
-        in_h = out_h;
-        in_w = out_w;
-        tanh<<<grid, block>>>(dev_res + (i * in_h * in_w), in_w, in_h);
+        convolution<<<grid, block>>>(first_pool, second_conv + (i * out_h * out_w), kernels_second_layer_dev + (i * KERNEL_DIM * KERNEL_DIM), out_h, out_w, padding, stride_c);
+        tanh<<<grid, block>>>(second_conv + (i * out_h * out_w), out_w, out_h);
     }
+
+    in_h = out_h;       //10
+    in_w = out_w;
+    out_h = (in_h - POOLING_WINDOW_SIZE) / stride_p + 1;            //5
+    out_w = (in_w - POOLING_WINDOW_SIZE) / stride_p + 1;
+    float *second_pool;
+    cudaMalloc((void **)&second_pool, sizeof(float) * out_w * out_h * kernel_num_second_layer);
+    block = {out_w, out_h};
+    grid = {out_w / 32 + 1, out_h / 32 + 1};
+    for(int i = 0; i < kernel_num_second_layer; i++){
+        avg_pooling<<<grid, block>>>(second_conv + (i * in_h * in_w), second_pool + (i * out_h * out_w), in_h, in_w, out_h, out_w, stride_p);
+        tanh<<<grid, block>>>(second_pool + (i * out_h * out_w), out_w, out_h);
+    }
+
+    in_h = out_h;       //5
+    in_w = out_w;
+    out_h = (in_h + 2 * padding - KERNEL_DIM) / stride_c + 1;       //1
+    out_w = (in_w + 2 * padding - KERNEL_DIM) / stride_c + 1;
+    float *third_conv;
+    cudaMalloc((void **)&third_conv, sizeof(float) * out_w * out_h * kernel_num_third_layer);
+    block = {out_w, out_h};
+    grid = {out_w / 32 + 1, out_h / 32 + 1};
+    for(int i = 0; i < kernel_num_third_layer; i++){
+        convolution<<<grid, block>>>(second_pool, third_conv + (i * out_h * out_w), kernels_third_layer_dev + (i * KERNEL_DIM * KERNEL_DIM), out_h, out_w, padding, stride_c);
+        tanh<<<grid, block>>>(third_conv + (i * out_h * out_w), out_w, out_h);
+    }
+
+    float *second_fc;
+    cudaMalloc((void **)&second_fc, sizeof(float) * fc_second_dim);
+    block = {fc_second_dim};
+    grid = {block.x / 32 + 1};
+    matrix_product<<<grid, block>>>(third_conv, fc_first_layer_dev, second_fc, fc_second_dim, 1, fc_first_dim);
+    tanh<<<grid, block>>>(second_fc, fc_second_dim, 1);
+
+    float *third_fc;
+    cudaMalloc((void **)&third_fc, sizeof(float) * fc_third_dim);
+    block = {fc_third_dim};
+    grid = {block.x / 32 + 1};
+    matrix_product<<<grid, block>>>(second_fc, fc_second_layer_dev, third_fc, fc_third_dim, 1, fc_second_dim);
+    
+
 }

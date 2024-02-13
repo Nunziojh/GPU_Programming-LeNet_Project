@@ -121,6 +121,23 @@ __global__ void exponential(float *in, int len){
     }
 }
 
+__global__ void subtraction(float *out, float *in1, float*in2, int dim){
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(idx < dim){
+        out[idx] = in1[idx] - in2[idx]; 
+    }
+}
+
+__global__ void transpose(float *out, float *in, int w_out, int h_out){         // BlockDim = alle dimensioni della matrice di uscita
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int idy = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if(idx < w_out && idy < h_out){
+        out[idy * w_out + idx] = in[idx * h_out + idy];
+    }
+}
+
 int main(){
     srand(time(NULL));
 
@@ -275,7 +292,36 @@ int main(){
     for(int i = 0; i < fc_third_dim; i++) loss += target[i] * log(prediction[i]);
     loss = -loss;
 
-    printf("\nLoss = %2.2f\n", loss);
+
+    /*
+        BackWard Propagatoin
+    */
+
+    float *prediction_dev, *target_dev;
+    cudaMalloc((void **)&prediction_dev, sizeof(float) * fc_third_dim);
+    cudaMalloc((void **)&target_dev, sizeof(float) * fc_third_dim);
+    cudaMemcpy(prediction_dev, prediction, sizeof(float) * fc_third_dim, cudaMemcpyHostToDevice);
+    cudaMemcpy(target_dev, target, sizeof(float) * fc_third_dim, cudaMemcpyHostToDevice);
+
+    float *dZ2;
+    cudaMalloc((void **)&dZ2, sizeof(float) * fc_third_dim);
+    block = {(unsigned int)fc_third_dim};
+    grid = {(unsigned int)(block.x / 1024 +1)};
+    subtraction<<<grid, block>>>(dZ2, prediction_dev, target_dev, fc_third_dim);
+
+    float *dW2;
+    cudaMalloc((void **)&dW2, sizeof(float) * fc_third_dim * fc_second_dim);
+    block = {(unsigned int)fc_second_dim, (unsigned int)fc_first_dim};
+    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+    matrix_product<<<grid, block>>>(dZ2, second_fc, dW2, fc_second_dim, fc_third_dim, 1);           // Quando lavoreremo con batch di dimensioni maggiori di 1 dovremo dividere ogni elemento della matrice per m e come ultimo parametro della chiamata a funzione mettere m invece di 1
+
+
+
+
+
+
+
+
 
 
     free(kernels_first_layer);

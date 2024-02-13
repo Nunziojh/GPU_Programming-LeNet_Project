@@ -4,7 +4,7 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#define h_m 32
+#define h_m 10
 #define w_m 32
 #define leakyReluSlope 0.1
 
@@ -50,28 +50,34 @@ __global__ void leakyRelu(float *in){
     }
 }
 
+__global__ void softmax(float *in, int len){
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(idx < len){
+        in[idx] = exp(in[idx]);
+    }
+}
+
 int main(int argc, char **argv){
 
-    float *host = (float *)malloc(sizeof(float) * h_m * w_m);
-    for(int i = 0; i < h_m * w_m; i++) host[i] = i;
+    float *host = (float *)malloc(sizeof(float) * h_m);
+    for(int i = 0; i < h_m; i++) host[i] = i;
 
     float *dev;
-    cudaMalloc((void **)&dev, h_m * w_m * sizeof(float));
-    cudaMemcpy(dev, host, sizeof(float) * h_m * w_m, cudaMemcpyHostToDevice);
+    cudaMalloc((void **)&dev, h_m * sizeof(float));
+    cudaMemcpy(dev, host, sizeof(float) * h_m, cudaMemcpyHostToDevice);
     
-    dim3 block = {32, 32};
-    dim3 grid = {w_m / block.x + 1, h_m / block.y + 1};
+    dim3 block = {h_m};
+    dim3 grid = {w_m / block.x + 1};
 
-    sigmoid<<<grid, block>>>(dev);
+    softmax<<<grid, block>>>(dev, h_m);
 
-    cudaMemcpy(host, dev, sizeof(float) * h_m * w_m, cudaMemcpyDeviceToHost);
+    cudaMemcpy(host, dev, sizeof(float) * h_m, cudaMemcpyDeviceToHost);
 
-    for(int i = 0; i < h_m; i++){
-        for(int j = 0; j < w_m; j++){
-            printf("%2.2f ", host[i * w_m + j]);
-        }
-        printf("\n");
+    for(int j = 0; j < h_m; j++){
+        printf("%2.2f ", host[j]);
     }
+    printf("\n");
 
     free(host);
     cudaFree(dev);

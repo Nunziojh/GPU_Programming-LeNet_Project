@@ -103,6 +103,34 @@ __global__ void matrix_product(float *in, float *weights, float *res, int w_weig
     }
 }
 
+__global__ void matrix_transpose_product(float *in1, float *in2, float *out, int w_out, int h_out, int h_in1){
+    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+    int idy = blockDim.y * blockIdx.y + threadIdx.y;
+
+    if(idx < w_out && idy < h_out){
+
+        float tmp = 0;
+        for(int i = 0, j = 0; i < h_in1 * h_out; i += h_out, j += w_out){
+            tmp += in1[idy + i] * in2[idx + j];
+        }
+        out[idy * w_out + idx] = tmp;
+    }
+}
+
+__global__ void matrix_product_transpose(float *in1, float *in2, float *out, int w_out, int h_out, int w_in1){
+    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+    int idy = blockDim.y * blockIdx.y + threadIdx.y;
+
+    if(idx < w_out && idy < h_out){
+
+        float tmp = 0;
+        for(int i = 0; i < w_in1; i++){
+            tmp += in1[idy * w_in1 + i] * in2[idx * w_in1 + i];
+        }
+        out[idy * w_out + idx] = tmp;
+    }
+}
+
 __global__ void tanh(float *in, int w, int h){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
@@ -313,7 +341,12 @@ int main(){
     cudaMalloc((void **)&dW2, sizeof(float) * fc_third_dim * fc_second_dim);
     block = {(unsigned int)fc_second_dim, (unsigned int)fc_first_dim};
     grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    matrix_product<<<grid, block>>>(dZ2, second_fc, dW2, fc_second_dim, fc_third_dim, 1);           // Quando lavoreremo con batch di dimensioni maggiori di 1 dovremo dividere ogni elemento della matrice per m e come ultimo parametro della chiamata a funzione mettere m invece di 1
+    /*
+        prodotto di matrici tra la matrice dZ2 (fc_third_dim x immagini_in_ingresso)
+        e le attivazioni del layer precedente, second_fc (fc_second_dim x immagini_in_ingresso) -> second_rc^T (immagini_in_ingresso x fc_second_dim)
+        per ottenere la matrice di derivata dei pesi dW2 (fc_third_dim x fc_second_dim)
+    */
+    matrix_product_transpose<<<grid, block>>>(dZ2, second_fc, dW2, 1, fc_second_dim, 1);           // Quando lavoreremo con batch di dimensioni maggiori di 1 dovremo dividere ogni elemento della matrice per m e come ultimo parametro della chiamata a funzione mettere m invece di 1
 
 
 

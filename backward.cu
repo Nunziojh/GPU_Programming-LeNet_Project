@@ -87,11 +87,11 @@ __global__ void avg_pooling(float *in, float *out, int h, int w, int new_h, int 
     }
 }
 
-__global__ void inverse_avg_pooling(float *in, float *out, float *m, int w, int h, int stride){
+__global__ void inverse_avg_pooling(float *in, float *out, float *m, int w_in, int h_in, int new_w, int new_h, int stride){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
-    if(idx < w && idy < h){
+    if(idx < w_in && idy < h_in){
 
         int i, j;
 
@@ -102,13 +102,13 @@ __global__ void inverse_avg_pooling(float *in, float *out, float *m, int w, int 
 
         for(i = 0; i < POOLING_WINDOW_SIZE; i++){
             for(j = 0; j < POOLING_WINDOW_SIZE; j++){
-                tot += ((new_idy + i) >= h || (new_idx + j) >= w) ? 0 : m[(new_idy + i) * w + new_idx + j];
+                tot += ((new_idy + i) >= new_h || (new_idx + j) >= new_w) ? 0 : m[(new_idy + i) * new_w + new_idx + j];
             }
         }
 
         for(i = 0; i < POOLING_WINDOW_SIZE; i++){
             for(j = 0; j < POOLING_WINDOW_SIZE; j++){
-                out[(idy + i) * w + idx + j] = m[(idy + i) * w + idx + j] / tot * in[(idy + i) * w + idx + j];
+                out[(new_idy + i) * new_w + new_idx + j] = m[(new_idy + i) * new_w + new_idx + j] / tot * in[idy * w_in + idx];
             }
         }
 
@@ -484,8 +484,100 @@ int main(){
         matrix_dot_product<<<grid, block>>>(second_pool + (i * 5 * 5), second_pool + (i * 5 * 5), dP1, 5, 5);
         scalar_subtraction<<<grid, block>>>(dP1 + (i * 5 * 5), dP1 + (i * 5 * 5), 5, 5);
         matrix_dot_product<<<grid, block>>>(dP1, dA3, dP1, 5, 5);
-        inverse_avg_pooling<<<grid, block>>>(dP1, dA2, second_conv, 5, 5, stride_p);
     }
+
+    float *dA2;
+    cudaMalloc((void **)&dA2, sizeof(float) * 10 * 10 * kernel_num_second_layer);
+    block = {5, 5};
+    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+    for(int i = 0; i < kernel_num_second_layer; i++){
+        inverse_avg_pooling<<<grid, block>>>(dP1 + (i * 5 * 5), dA2 + (i * 10 * 10), second_conv + (i * 10 * 10), 5, 5, 10, 10, stride_p);
+    }
+
+    float *dC1;
+    cudaMalloc((void **)&dC1, sizeof(float) * 10 * 10 * kernel_num_second_layer);
+    block = {1, (unsigned int)fc_second_dim};       //Da sistemare
+    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+    for(int i = 0; i < kernel_num_second_layer; i++){
+        matrix_dot_product<<<grid, block>>>(second_conv + (i * 10 * 10), second_conv + (i * 10 * 10), dC1, 10, 10);
+        scalar_subtraction<<<grid, block>>>(dC1 + (i * 10 * 10), dC1 + (i * 10 * 10), 10, 10);
+        matrix_dot_product<<<grid, block>>>(dC1, dA2, dC1, 10, 10);
+    }
+
+    float *dA1;
+    in_h = KERNEL_DIM;
+    in_w = KERNEL_DIM;
+    int h_2 = 10;
+    int w_2 = 10;
+    padding = h_2 - 1;
+    stride_c = 1;
+    /*
+         out_h = (in_h + 2 * padding - kernel) / stride + 1
+         padding = dimensione del secondo elemento - 1
+         kernel_size = dimensione del secondo elemento
+         stride = 1
+    */
+    out_h = (in_h + 2 * padding - h_2) / stride_c + 1;
+    out_w = (in_w + 2 * padding - w_2) / stride_c + 1;
+    cudaMalloc((void **)&dA1, sizeof(float) * out_h * out_w * kernel_num_first_layer);
+    block = {(unsigned int)out_w, (unsigned int)out_h};
+    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+    for(int i = 0; i < kernel_num_second_layer; i++){
+        for(int j = 0; j < kernel_num_first_layer; j++){
+            convolution3D<<<grid, block>>>(kernels_second_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer)), dA1 + (j * out_h * out_w), dZ0 + (i * h_2 * w_2), out_h, out_w, padding, stride_c);
+        }
+    }
+
+    float *dF1;
+    out_h = 5;
+    out_w = 5;
+    cudaMalloc((void **)&dF1, sizeof(float) * out_h * out_w * kernel_num_first_layer * kernel_num_second_layer);
+    block = {(unsigned int)out_w, (unsigned int)out_h};
+    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+    for(int i = 0; i < kernel_num_second_layer; i++){
+        for(int j = 0; j < kernel_num_first_layer; j++){
+            convolution<<<grid, block>>>(first_pool + (j * in_h * in_w), dF1 + (j * in_h * in_w + (i * in_h * in_w * kernel_num_second_layer)), dC1 + (i * 1 * 1), KERNEL_DIM, KERNEL_DIM, padding, stride_c);
+        }
+    }
+
+    float *dP0;
+    cudaMalloc((void **)&dP0, sizeof(float) * 14 * 14 * kernel_num_first_layer);
+    block = {1, (unsigned int)fc_second_dim};       //Da sistemare
+    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+    for(int i = 0; i < kernel_num_first_layer; i++){
+        matrix_dot_product<<<grid, block>>>(first_pool + (i * 14 * 14), first_pool + (i * 14 * 14), dP0, 14, 14);
+        scalar_subtraction<<<grid, block>>>(dP0 + (i * 14 * 14), dP0 + (i * 14 * 14), 14, 14);
+        matrix_dot_product<<<grid, block>>>(dP0, dA1, dP0, 14, 14);
+    }
+
+    float *dA0;
+    cudaMalloc((void **)&dA0, sizeof(float) * 28 * 28 * kernel_num_first_layer);
+    block = {14, 14};
+    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+    for(int i = 0; i < kernel_num_second_layer; i++){
+        inverse_avg_pooling<<<grid, block>>>(dP0 + (i * 14 * 14), dA0 + (i * 28 * 28), first_conv + (i * 28 * 28), 14, 14, 28, 28, stride_p);
+    }
+    
+    float *dC0;
+    cudaMalloc((void **)&dC0, sizeof(float) * 28 * 28 * kernel_num_first_layer);
+    block = {1, (unsigned int)fc_second_dim};       //Da sistemare
+    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+    for(int i = 0; i < kernel_num_first_layer; i++){
+        matrix_dot_product<<<grid, block>>>(first_conv + (i * 28 * 28), first_conv + (i * 28 * 28), dC0, 28, 28);
+        scalar_subtraction<<<grid, block>>>(dC0 + (i * 28 * 28), dC0 + (i * 28 * 28), 28, 28);
+        matrix_dot_product<<<grid, block>>>(dC0, dA0, dC0, 28, 28);
+    }
+
+    float *dF0;
+    out_h = 5;
+    out_w = 5;
+    cudaMalloc((void **)&dF0, sizeof(float) * out_h * out_w * kernel_num_first_layer);
+    block = {(unsigned int)out_w, (unsigned int)out_h};
+    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+    for(int i = 0; i < kernel_num_second_layer; i++){
+        convolution<<<grid, block>>>(img_dev, dF0 + (i * 5 * 5), dC0 + (i * 1 * 1), KERNEL_DIM, KERNEL_DIM, padding, stride_c);
+    }
+
    
     
     

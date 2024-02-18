@@ -5,8 +5,8 @@
 #include <cuda.h>
 
 #define dim_f 2
-#define h_m 8
-#define w_m 8
+#define h_m 4
+#define w_m 4
 #define stride 2
 
 __global__ void max_pooling(int *in, int *out, int new_h, int new_w){
@@ -55,8 +55,36 @@ __global__ void avg_pooling(int *in, float *out, int new_h, int new_w){
     }
 }
 
-int main(int argc, char **argv){
+__global__ void inverse_avg_pooling(float *in, float *out, float *m, int w_in, int h_in, int new_w, int new_h, int stride_c){
+    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+    int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
+    if(idx < w_in && idy < h_in){
+
+        int i, j;
+
+        float tot = 0;
+
+        int new_idx = idx * stride_c;
+        int new_idy = idy * stride_c;
+
+        for(i = 0; i < 2; i++){
+            for(j = 0; j < 2; j++){
+                tot += ((new_idy + i) >= new_h || (new_idx + j) >= new_w) ? 0 : m[(new_idy + i) * new_w + new_idx + j];
+            }
+        }
+
+        for(i = 0; i < 2; i++){
+            for(j = 0; j < 2; j++){
+                out[(new_idy + i) * new_w + new_idx + j] = m[(new_idy + i) * new_w + new_idx + j] / tot * in[idy * w_in + idx];
+            }
+        }
+
+    }
+}
+
+int main(int argc, char **argv){
+/*
     int *host_input = (int *)malloc(sizeof(int) * h_m * w_m);
     for(int i = 0; i < h_m * w_m; i++) host_input[i] = i;
 
@@ -102,14 +130,38 @@ int main(int argc, char **argv){
             printf("%02.3f ", host_res_avg[i * new_w + j]);
         }
         printf("\n");
+    }*/
+
+    float *host_input = (float *)malloc(sizeof(float) * h_m * w_m);
+    for(int i = 0; i < h_m * w_m; i++) host_input[i] = i;
+    float *host_kernel = (float *)malloc(sizeof(float) * h_m * w_m / 4);
+    for(int i = 0; i < h_m * w_m / 4; i++) host_kernel[i] = i;
+    float *host_output = (float *)malloc(sizeof(float) * h_m * w_m);
+
+    float *dev_kernel, *dev_out, *dev_input;
+    cudaMalloc((void **)&dev_kernel, h_m * w_m * sizeof(float) / 4);
+    cudaMalloc((void **)&dev_out, h_m * w_m * sizeof(float));
+    cudaMalloc((void **)&dev_input, h_m * w_m * sizeof(float));
+    cudaMemcpy(dev_kernel, host_kernel, sizeof(float) * h_m * w_m / 4, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_input, host_input, sizeof(float) * h_m * w_m, cudaMemcpyHostToDevice);
+
+    inverse_avg_pooling<<<1, {w_m / 2, h_m / 2}>>>(dev_kernel, dev_out, dev_input, h_m / 2, w_m / 2, h_m, w_m, 2);
+
+    cudaMemcpy(host_output, dev_out, sizeof(float) * h_m * w_m, cudaMemcpyDeviceToHost);
+
+    for(int i = 0; i < h_m; i++){
+        for(int j = 0; j < w_m; j++){
+            printf("%02.3f ", host_output[i * w_m + j]);
+        }
+        printf("\n");
     }
 
     free(host_input);
-    free(host_res_max);
-    free(host_res_avg);
+    free(host_kernel);
+    free(host_output);
     cudaFree(dev_input);
-    cudaFree(dev_max);
-    cudaFree(dev_avg);
+    cudaFree(dev_out);
+    cudaFree(dev_kernel);
 
     return 0;
 

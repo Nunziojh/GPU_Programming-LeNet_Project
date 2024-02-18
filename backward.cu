@@ -23,13 +23,13 @@ __global__ void convolution(float *in, float *out, float *kernel, int new_h, int
         float tmp = 0;
         float val;
 
-        int new_idx = idx * stride - c + padding;
-        int new_idy = idy * stride - r + padding;
+        int new_idx = idx * stride + c - padding;
+        int new_idy = idy * stride + r - padding;
 
         for(i = -r; i <= r; i++){
             for(j = -c; j <= c; j++){
                 val = ((new_idy + i) < 0 || (new_idy + i) >= H || (new_idx + j) < 0 || (new_idx + j) >= W) ? 0 : in[(new_idy + i) * W + new_idx + j];
-                tmp += kernel[(i+1) * KERNEL_DIM + (j+1)] * val;
+                tmp += kernel[(r-i) * KERNEL_DIM + (c-j)] * val;
             }
         }
         out[idy * new_w + idx] = tmp;
@@ -49,13 +49,13 @@ __global__ void convolution3D(float *in, float *out, float *kernel, int new_h, i
         float tmp = 0;
         float val;
 
-        int new_idx = idx * stride - c + padding;
-        int new_idy = idy * stride - r + padding;
+        int new_idx = idx * stride + c - padding;
+        int new_idy = idy * stride + r - padding;
 
         for(i = -r; i <= r; i++){
             for(j = -c; j <= c; j++){
                 val = ((new_idy + i) < 0 || (new_idy + i) >= H || (new_idx + j) < 0 || (new_idx + j) >= W) ? 0 : in[(new_idy + i) * W + new_idx + j];
-                tmp += kernel[(i+1) * KERNEL_DIM + (j+1)] * val;
+                tmp += kernel[(r-i) * KERNEL_DIM + (c-j)] * val;
             }
         }
         out[idy * new_w + idx] += tmp;
@@ -84,6 +84,34 @@ __global__ void avg_pooling(float *in, float *out, int h, int w, int new_h, int 
         __syncthreads();
 
         out[idy * new_w + idx] = tmp / (float)(POOLING_WINDOW_SIZE * POOLING_WINDOW_SIZE);
+    }
+}
+
+__global__ void inverse_avg_pooling(float *in, float *out, float *m, int w, int h, int stride){
+    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+    int idy = blockDim.y * blockIdx.y + threadIdx.y;
+
+    if(idx < w && idy < h){
+
+        int i, j;
+
+        float tot = 0;
+
+        int new_idx = idx * stride;
+        int new_idy = idy * stride;
+
+        for(i = 0; i < POOLING_WINDOW_SIZE; i++){
+            for(j = 0; j < POOLING_WINDOW_SIZE; j++){
+                tot += ((new_idy + i) >= h || (new_idx + j) >= w) ? 0 : m[(new_idy + i) * w + new_idx + j];
+            }
+        }
+
+        for(i = 0; i < POOLING_WINDOW_SIZE; i++){
+            for(j = 0; j < POOLING_WINDOW_SIZE; j++){
+                out[(idy + i) * w + idx + j] = m[(idy + i) * w + idx + j] / tot * in[(idy + i) * w + idx + j];
+            }
+        }
+
     }
 }
 
@@ -425,11 +453,41 @@ int main(){
     }
 
     float *dA3;
-    out_h = 5;
-    out_w = 5;
+    in_h = KERNEL_DIM;
+    in_w = KERNEL_DIM;
+    int h_2 = 1;
+    int w_2 = 1;
+    padding = h_2 - 1;
+    stride_c = 1;
+    /*
+         out_h = (in_h + 2 * padding - kernel) / stride + 1
+         padding = dimensione del secondo elemento - 1
+         kernel_size = dimensione del secondo elemento
+         stride = 1
+    */
+    out_h = (in_h + 2 * padding - h_2) / stride_c + 1;
+    out_w = (in_w + 2 * padding - w_2) / stride_c + 1;
     cudaMalloc((void **)&dA3, sizeof(float) * out_h * out_w * kernel_num_second_layer);
-    block = {};
-    grid = {};
+    block = {(unsigned int)out_w, (unsigned int)out_h};
+    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+    for(int i = 0; i < kernel_num_third_layer; i++){
+        for(int j = 0; j < kernel_num_second_layer; j++){
+            convolution3D<<<grid, block>>>(kernels_third_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer)), dA3 + (j * out_h * out_w), dZ0 + (i * h_2 * w_2), out_h, out_w, padding, stride_c);
+        }
+    }
+
+    float *dP1;
+    cudaMalloc((void **)&dP1, sizeof(float) * 5 * 5 * kernel_num_second_layer);
+    block = {1, (unsigned int)fc_second_dim};       //Da sistemare
+    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+    for(int i = 0; i < kernel_num_second_layer; i++){
+        matrix_dot_product<<<grid, block>>>(second_pool + (i * 5 * 5), second_pool + (i * 5 * 5), dP1, 5, 5);
+        scalar_subtraction<<<grid, block>>>(dP1 + (i * 5 * 5), dP1 + (i * 5 * 5), 5, 5);
+        matrix_dot_product<<<grid, block>>>(dP1, dA3, dP1, 5, 5);
+        inverse_avg_pooling<<<grid, block>>>(dP1, dA2, second_conv, 5, 5, stride_p);
+    }
+   
+    
     
 
 

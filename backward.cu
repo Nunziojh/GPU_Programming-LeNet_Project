@@ -357,8 +357,8 @@ int main(){
     float *dA3;
     in_h = KERNEL_DIM;
     in_w = KERNEL_DIM;
-    int h_2 = 1;
-    int w_2 = 1;
+    h_2 = 1;
+    w_2 = 1;
     padding = h_2 - 1;
     /*
          out_h = (in_h + 2 * padding - kernel) / stride + 1
@@ -408,8 +408,8 @@ int main(){
     float *dA1;
     in_h = KERNEL_DIM;
     in_w = KERNEL_DIM;
-    int h_2 = 10;
-    int w_2 = 10;
+    h_2 = 10;
+    w_2 = 10;
     padding = h_2 - 1;
     /*
          out_h = (in_h + 2 * padding - kernel) / stride + 1

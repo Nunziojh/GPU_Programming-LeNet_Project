@@ -5,6 +5,7 @@
 #include <cuda.h>
 
 #include "gpu_functions.h"
+//#include "mnist.h"
 
 int main(){
     srand(time(NULL));
@@ -12,26 +13,26 @@ int main(){
     /***
      * Definizione dei parametri della rete.
     */
-    int padding = 0;
-    const int stride_c = 1;
-    const int stride_p = 2;
-    const int kernel_num_first_layer = 6;
-    const int kernel_num_second_layer = 16;
-    const int kernel_num_third_layer = 120;
-    const int fc_first_dim = 120;
-    const int fc_second_dim = 84;
-    const int fc_third_dim = 10;
-    const int m = 1;        //batch size
+    int unsigned padding = 0;
+    const unsigned int stride_c = 1;
+    const unsigned int stride_p = 2;
+    const unsigned int kernel_num_first_layer = 6;
+    const unsigned int kernel_num_second_layer = 16;
+    const unsigned int kernel_num_third_layer = 120;
+    const unsigned int fc_first_dim = 120;
+    const unsigned int fc_second_dim = 84;
+    const unsigned int fc_third_dim = 10;
+    const unsigned int m = 1;        //batch size
 
     /*
         Definizione delle variabili generiche.
     */
     dim3 block, grid;
-    int in_h = 32;
-    int in_w = 32;
-    int out_h = (in_h + 2 * padding - KERNEL_DIM) / stride_c + 1;
-    int out_w = (in_w + 2 * padding - KERNEL_DIM) / stride_c + 1;
-    int h_2, w_2;
+    int unsigned in_h = 32;
+    int unsigned in_w = 32;
+    int unsigned out_h = (in_h + 2 * padding - KERNEL_DIM) / stride_c + 1;
+    int unsigned out_w = (in_w + 2 * padding - KERNEL_DIM) / stride_c + 1;
+    int unsigned h_2, w_2;
     float summation;
     float loss;
 
@@ -55,6 +56,7 @@ int main(){
     */
     float target[10] = {0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
     float *img = (float *) malloc(sizeof(float) * in_h * in_w);
+    // TODO: Aggiungere il padding all'immagine di ingresso (28 x 28) -> (32 x 32)
     for(int i = 0; i < in_w * in_w; i++) img[i] = i;
 
     /***

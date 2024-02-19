@@ -8,8 +8,8 @@
 #define w_k 3
 #define h_m 5
 #define w_m 5
-#define stride 2
-#define padding 1
+#define stride 1
+#define padding 0
 
 __constant__ int kernel[h_k * w_k];
 
@@ -50,7 +50,9 @@ int main(int argc, char **argv){
                         10, 6, 5, 4, 3,
                         2, 2, 2, 1, 1,
                         1, 6, 7, 8, 9};
-    int host_kernel[] = {1, 1, 1, 0, 0, 0, -1, -1, -1};
+    int host_kernel[] = {1, 1, 1,
+                        0, 0, 0,
+                        -1, -1, -1};
     //for(int i = 0; i< w_k * h_k; i++) host_kernel[i] = 1;
     //int *host_input = (int *)malloc(sizeof(int) * h_m * w_m);
     

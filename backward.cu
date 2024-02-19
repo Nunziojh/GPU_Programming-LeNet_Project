@@ -13,7 +13,7 @@ int main(){
     /***
      * Definizione dei parametri della rete.
     */
-    int unsigned padding = 0;
+    const unsigned int padding = 0;
     const unsigned int stride_c = 1;
     const unsigned int stride_p = 2;
     const unsigned int kernel_num_first_layer = 6;
@@ -33,6 +33,7 @@ int main(){
     int unsigned out_h = (in_h + 2 * padding - KERNEL_DIM) / stride_c + 1;
     int unsigned out_w = (in_w + 2 * padding - KERNEL_DIM) / stride_c + 1;
     int unsigned h_2, w_2;
+    int unsigned padding_full_conv;
     float summation;
     float loss;
 
@@ -67,7 +68,7 @@ int main(){
     float *kernels_third_layer_dev, *third_conv;
     float *fc_first_layer_dev, *second_fc;
     float *fc_second_layer_dev, *third_fc;
-    float *img_dev, *prediction_dev, *target_dev;
+    float *img_dev;
 
     float *dZ2, *dW2;
     float *dZ1, *gdZ1, *dW1;
@@ -87,24 +88,22 @@ int main(){
     cudaMalloc((void **)&second_pool, sizeof(float) * 5 * 5 * 16);
     
     cudaMalloc((void **)&kernels_third_layer_dev, sizeof(float) * KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer * kernel_num_third_layer);
-    cudaMalloc((void **)&third_conv, sizeof(float) * 1 * 1 * 120);
+    cudaMalloc((void **)&third_conv, sizeof(float) * 1 * 1 * 120 * m);
 
     cudaMalloc((void **)&fc_first_layer_dev, sizeof(float) * fc_second_dim * fc_first_dim);
-    cudaMalloc((void **)&second_fc, sizeof(float) * 84);
+    cudaMalloc((void **)&second_fc, sizeof(float) * 84 * m);
     cudaMalloc((void **)&fc_second_layer_dev, sizeof(float) * fc_second_dim * fc_third_dim);
-    cudaMalloc((void **)&third_fc, sizeof(float) * 10);
+    cudaMalloc((void **)&third_fc, sizeof(float) * 10 * m);
 
     cudaMalloc((void **)&img_dev, sizeof(float) * in_w * in_w);
-    cudaMalloc((void **)&prediction_dev, sizeof(float) * 10);
-    cudaMalloc((void **)&target_dev, sizeof(float) * 10);
 
-    cudaMalloc((void **)&dZ2, sizeof(float) * fc_third_dim);
+    cudaMalloc((void **)&dZ2, sizeof(float) * fc_third_dim * m);
     cudaMalloc((void **)&dW2, sizeof(float) * fc_third_dim * fc_second_dim);
-    cudaMalloc((void **)&dZ1, sizeof(float) * fc_second_dim);
-    cudaMalloc((void **)&gdZ1, sizeof(float) * fc_second_dim);
+    cudaMalloc((void **)&dZ1, sizeof(float) * fc_second_dim * m);
+    cudaMalloc((void **)&gdZ1, sizeof(float) * fc_second_dim * m);
     cudaMalloc((void **)&dW1, sizeof(float) * fc_second_dim * fc_first_dim);
-    cudaMalloc((void **)&dZ0, sizeof(float) * fc_first_dim);
-    cudaMalloc((void **)&gdZ0, sizeof(float) * fc_first_dim);
+    cudaMalloc((void **)&dZ0, sizeof(float) * fc_first_dim * m);
+    cudaMalloc((void **)&gdZ0, sizeof(float) * fc_first_dim * m);
     cudaMalloc((void **)&dF2, sizeof(float) * KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer * kernel_num_third_layer);
     cudaMalloc((void **)&dA3, sizeof(float) * 5 * 5 * kernel_num_second_layer);
     cudaMalloc((void **)&dP1, sizeof(float) * 5 * 5 * kernel_num_second_layer);
@@ -222,18 +221,6 @@ int main(){
             tanh<<<grid, block>>>(third_conv + (i * out_h * out_w), out_w, out_h);
         }
 
-
-
-        /*
-            TODO
-            raccogliare tutte le uscite calcolate fino ad ora e raggrupparle in una matrice (120 * m) per
-            velocizzare i calcoli successivi.
-        
-        */
-
-
-
-
         /****
          * A partire dalla matrice di dimensini (120 x m) ottenuta dall'ultimo layer convolutivo, calcoliamo il primo
          * livello di Fully Connected usando come matrice di pesi la variabile 'fc_first_layer_dev' di dimensioni
@@ -310,181 +297,290 @@ int main(){
         out_w = fc_second_dim;
         block = {(unsigned int)out_w, (unsigned int)out_h};
         grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-        matrix_product_transpose<<<grid, block>>>(dZ2, second_fc, dW2, out_h, out_w, m);
+        matrix_product_transpose<<<grid, block>>>(dZ2, second_fc, dW2, out_h, out_w, in_w);
+        matrix_scalar_product<<<grid, block>>>(dW2, (1.0 / m), out_w, out_h);
     
-    float *dZ1;
-    cudaMalloc((void **)&dZ1, sizeof(float) * fc_second_dim * 1);            //Da moltiplicare per il numero di immagini usate nel batch
-    block = {1, (unsigned int)fc_second_dim};
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    matrix_transpose_product<<<grid, block>>>(fc_second_layer_dev, dZ2, dZ1, 1, fc_second_dim, fc_third_dim);
-    float *gdZ1;
-    cudaMalloc((void **)&gdZ1, sizeof(float) * fc_second_dim * 1);
-    block = {1, (unsigned int)fc_second_dim};
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    matrix_dot_product<<<grid, block>>>(second_fc, second_fc, gdZ1, 1, fc_second_dim);
-    scalar_subtraction<<<grid, block>>>(gdZ1, gdZ1, 1, fc_second_dim);
-    matrix_dot_product<<<grid, block>>>(dZ1, gdZ1, dZ1, 1, fc_second_dim);
+        /****
+         * Calcoliamo la derivata delle uscite del secondo layer FC.
+         * dA1 = W2^T * dZ2
+         * dZ1 = dA1 .* (1 - A1^2) --> Derivata della tangente iperbolica
+         * dA1 (84 x m)
+         * W2 (10 x 84)
+         * dZ2 (10 x m)
+         * A1 (84 x m) Attivazioni del livello precedente
+        */
+        in_h = fc_third_dim;
+        in_w = m;
+        out_h = fc_second_dim;
+        out_w = m;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        matrix_transpose_product<<<grid, block>>>(fc_second_layer_dev, dZ2, dZ1, out_w, out_h, in_h);
+        matrix_dot_product<<<grid, block>>>(second_fc, second_fc, gdZ1, out_w, out_h);
+        scalar_subtraction<<<grid, block>>>(gdZ1, gdZ1, out_w, out_h);
+        matrix_dot_product<<<grid, block>>>(dZ1, gdZ1, dZ1, out_w, out_h);
 
-    float *dW1;
-    cudaMalloc((void **)&dW1, sizeof(float) * fc_second_dim * fc_first_dim);
-    block = {(unsigned int)fc_first_dim, (unsigned int)fc_second_dim};
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    matrix_product_transpose<<<grid, block>>>(dZ1, third_conv, dW1, fc_first_dim, fc_second_dim, 1);
+        /****
+         * Calcoliamo la derivata dei pesi tra il primo e il secondo livello FC.
+         * dW1 = dZ1 * A0^T
+         * dW1 (84 x 120)
+         * dZ1 (84 x m) Derivata della funzione di Loss fino a questo punto
+         * A0 (120 x m) La matrice delle attivazioni dell'ultimo layer convolutivo raccolte per colonne di altezza 120
+        */
+        in_h = fc_second_dim;
+        in_w = m;
+        out_h = fc_second_dim;
+        out_w = fc_first_dim;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        matrix_product_transpose<<<grid, block>>>(dZ1, third_conv, dW1, out_w, out_h, in_w);
+        matrix_scalar_product<<<grid, block>>>(dW1, (1.0 / m), out_w, out_h);
 
-    float *dZ0;
-    cudaMalloc((void **)&dZ0, sizeof(float) * fc_first_dim * 1);            //Da moltiplicare per il numero di immagini usate nel batch
-    block = {1, (unsigned int)fc_first_dim};
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    matrix_transpose_product<<<grid, block>>>(fc_first_layer_dev, dZ1, dZ0, 1, fc_first_dim, fc_second_dim);
-    float *gdZ0;
-    cudaMalloc((void **)&gdZ0, sizeof(float) * fc_first_dim * 1);
-    block = {1, (unsigned int)fc_first_dim};
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    matrix_dot_product<<<grid, block>>>(third_conv, third_conv, gdZ0, 1, fc_first_dim);
-    scalar_subtraction<<<grid, block>>>(gdZ0, gdZ0, 1, fc_first_dim);
-    matrix_dot_product<<<grid, block>>>(dZ0, gdZ0, dZ0, 1, fc_first_dim);
+        /****
+         * Calcoliamo la derivata delle uscite del secondo layer FC.
+         * dA0 = W1^T * dZ1
+         * dZ0 = dA0 .* (1 - A0^2) --> Derivata della tangente iperbolica
+         * dA0 (120 x m)
+         * W1 (84 x 120)
+         * dZ1 (84 x m)
+         * A0 (120 x m) La matrice delle attivazioni dell'ultimo layer convolutivo raccolte per colonne di altezza 120
+        */
+        in_h = fc_second_dim;
+        in_w = m;
+        out_h = fc_first_dim;
+        out_w = m;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        matrix_transpose_product<<<grid, block>>>(fc_first_layer_dev, dZ1, dZ0, out_w, out_h, in_h);
+        matrix_dot_product<<<grid, block>>>(third_conv, third_conv, gdZ0, out_w, out_h);
+        scalar_subtraction<<<grid, block>>>(gdZ0, gdZ0, out_w, out_h);
+        matrix_dot_product<<<grid, block>>>(dZ0, gdZ0, dZ0, out_w, out_h);
 
-    float *dF2;
-    out_h = 5;
-    out_w = 5;
-    cudaMalloc((void **)&dF2, sizeof(float) * out_h * out_w * kernel_num_second_layer * kernel_num_third_layer);
-    block = {(unsigned int)out_w, (unsigned int)out_h};
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    for(int i = 0; i < kernel_num_third_layer; i++){
-        for(int j = 0; j < kernel_num_second_layer; j++){
-            convolution<<<grid, block>>>(second_pool + (j * in_h * in_w), dF2 + (j * in_h * in_w + (i * in_h * in_w * kernel_num_third_layer)), dZ0 + (i * 1 * 1), KERNEL_DIM, KERNEL_DIM, padding, stride_c);
+        /****
+         * Calcoliamo la derivata del terzo gruppo di kernel che di dimensioni (5 x 5 x 16), di cui
+         * ne abbiamo 120.
+         * La convoluzione, mantenendo fisso il canale dell'uscita dZ0, itera su tutti i canali dell'ingresso.
+         * Aggiorniamo il valore di tutte le derivate dei filtri.
+         * Utilizziamo la funzione convolution3D che ci permette di aggiornare i valori sulla matrice di output
+         * sommandoli invece di sovrascriverli.
+        */
+        in_h = 5;
+        in_w = 5;
+        h_2 = 1;
+        w_2 = 1;
+        out_h = KERNEL_DIM;
+        out_w = KERNEL_DIM;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        for(int i = 0; i < kernel_num_third_layer; i++){
+            for(int j = 0; j < kernel_num_second_layer; j++){
+                convolution3D<<<grid, block>>>(second_pool + (j * in_h * in_w), dF2 + (j * out_w * out_h + (i * out_w * out_h * kernel_num_third_layer)), dZ0 + (i * h_2 * w_2), KERNEL_DIM, KERNEL_DIM, padding, stride_c);
+            }
         }
-    }
 
-    float *dA3;
-    in_h = KERNEL_DIM;
-    in_w = KERNEL_DIM;
-    h_2 = 1;
-    w_2 = 1;
-    padding = h_2 - 1;
-    /*
-         out_h = (in_h + 2 * padding - kernel) / stride + 1
-         padding = dimensione del secondo elemento - 1
-         kernel_size = dimensione del secondo elemento
-         stride = 1
-    */
-    out_h = (in_h + 2 * padding - h_2) / stride_c + 1;
-    out_w = (in_w + 2 * padding - w_2) / stride_c + 1;
-    cudaMalloc((void **)&dA3, sizeof(float) * out_h * out_w * kernel_num_second_layer);
-    block = {(unsigned int)out_w, (unsigned int)out_h};
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    for(int i = 0; i < kernel_num_third_layer; i++){
-        for(int j = 0; j < kernel_num_second_layer; j++){
-            convolution3D<<<grid, block>>>(kernels_third_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer)), dA3 + (j * out_h * out_w), dZ0 + (i * h_2 * w_2), out_h, out_w, padding, stride_c);
+        /****
+         * Cacoliamo la Full Convolution tra i kernel della terza convoluzione e dZ0 che è
+         * la derivata, rispetto alla Loss, calcolata fino all'uscita della terza convoluzione.
+         * h_2 e w_2 si riferiscono alle dimensioni spaziali della matrice dZ0.
+         * Per calcolare le dimensine di uscita usiamo la formual standard.
+         * Iteriamo su tutti i canali dei kernel, mantenendo fisso il canale di dZ0 per un intero ciclo
+         * di j. Utilizziamo la funzione convolution3D che ci permette di aggiornare i valori di dA3.
+        */
+        in_h = KERNEL_DIM;
+        in_w = KERNEL_DIM;
+        h_2 = 1;
+        w_2 = 1;
+        padding_full_conv = h_2 - 1;
+        out_h = (in_h + 2 * padding - h_2) / stride_c + 1;
+        out_w = (in_w + 2 * padding - w_2) / stride_c + 1;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        for(int i = 0; i < kernel_num_third_layer; i++){
+            for(int j = 0; j < kernel_num_second_layer; j++){
+                convolution3D<<<grid, block>>>(kernels_third_layer_dev + (j * in_h * in_w + (i * in_h * in_w * kernel_num_second_layer)), dA3 + (j * out_h * out_w), dZ0 + (i * h_2 * w_2), out_h, out_w, padding_full_conv, stride_c);
+            }
         }
-    }
 
-    float *dP1;
-    cudaMalloc((void **)&dP1, sizeof(float) * 5 * 5 * kernel_num_second_layer);
-    block = {1, (unsigned int)fc_second_dim};       //Da sistemare
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    for(int i = 0; i < kernel_num_second_layer; i++){
-        matrix_dot_product<<<grid, block>>>(second_pool + (i * 5 * 5), second_pool + (i * 5 * 5), dP1, 5, 5);
-        scalar_subtraction<<<grid, block>>>(dP1 + (i * 5 * 5), dP1 + (i * 5 * 5), 5, 5);
-        matrix_dot_product<<<grid, block>>>(dP1, dA3, dP1, 5, 5);
-    }
-
-    float *dA2;
-    cudaMalloc((void **)&dA2, sizeof(float) * 10 * 10 * kernel_num_second_layer);
-    block = {5, 5};
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    for(int i = 0; i < kernel_num_second_layer; i++){
-        inverse_avg_pooling<<<grid, block>>>(dP1 + (i * 5 * 5), dA2 + (i * 10 * 10), second_conv + (i * 10 * 10), 5, 5, 10, 10, stride_p);
-    }
-
-    float *dC1;
-    cudaMalloc((void **)&dC1, sizeof(float) * 10 * 10 * kernel_num_second_layer);
-    block = {1, (unsigned int)fc_second_dim};       //Da sistemare
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    for(int i = 0; i < kernel_num_second_layer; i++){
-        matrix_dot_product<<<grid, block>>>(second_conv + (i * 10 * 10), second_conv + (i * 10 * 10), dC1, 10, 10);
-        scalar_subtraction<<<grid, block>>>(dC1 + (i * 10 * 10), dC1 + (i * 10 * 10), 10, 10);
-        matrix_dot_product<<<grid, block>>>(dC1, dA2, dC1, 10, 10);
-    }
-
-    float *dA1;
-    in_h = KERNEL_DIM;
-    in_w = KERNEL_DIM;
-    h_2 = 10;
-    w_2 = 10;
-    padding = h_2 - 1;
-    /*
-         out_h = (in_h + 2 * padding - kernel) / stride + 1
-         padding = dimensione del secondo elemento - 1
-         kernel_size = dimensione del secondo elemento
-         stride = 1
-    */
-    out_h = (in_h + 2 * padding - h_2) / stride_c + 1;
-    out_w = (in_w + 2 * padding - w_2) / stride_c + 1;
-    cudaMalloc((void **)&dA1, sizeof(float) * out_h * out_w * kernel_num_first_layer);
-    block = {(unsigned int)out_w, (unsigned int)out_h};
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    for(int i = 0; i < kernel_num_second_layer; i++){
-        for(int j = 0; j < kernel_num_first_layer; j++){
-            convolution3D<<<grid, block>>>(kernels_second_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer)), dA1 + (j * out_h * out_w), dZ0 + (i * h_2 * w_2), out_h, out_w, padding, stride_c);
+        /****
+         * Calcoliamo la derivata delle uscite del secondo layer di Pooling.
+         * Iteriamo su tutti canali singolarmente e per ognuno calcoliamo
+         * la derivata della funzione tangente iperbolica.
+         * dP1 = dA3 * (1 - A3^2)
+         * Le dimensioni sono (5 x 5)
+        */
+        in_h = 5;
+        in_w = 5;
+        out_h = in_h;
+        out_w = in_w;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        for(int i = 0; i < kernel_num_second_layer; i++){
+            matrix_dot_product<<<grid, block>>>(second_pool + (i * in_h * in_w), second_pool + (i * in_h * in_w), dP1, out_h, out_w);
+            scalar_subtraction<<<grid, block>>>(dP1 + (i * in_w * in_h), dP1 + (i * in_w * in_h), out_w, out_h);
+            matrix_dot_product<<<grid, block>>>(dP1, dA3, dP1, out_w, out_h);
         }
-    }
 
-    float *dF1;
-    out_h = 5;
-    out_w = 5;
-    cudaMalloc((void **)&dF1, sizeof(float) * out_h * out_w * kernel_num_first_layer * kernel_num_second_layer);
-    block = {(unsigned int)out_w, (unsigned int)out_h};
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    for(int i = 0; i < kernel_num_second_layer; i++){
-        for(int j = 0; j < kernel_num_first_layer; j++){
-            convolution<<<grid, block>>>(first_pool + (j * in_h * in_w), dF1 + (j * in_h * in_w + (i * in_h * in_w * kernel_num_second_layer)), dC1 + (i * 1 * 1), KERNEL_DIM, KERNEL_DIM, padding, stride_c);
+        /****
+         * Derivata rispetto all'uscita del secondo layer di Pooling.
+         * Ogni valore della matrici di ingresso dP1 viene moltiplicato per il valore
+         * proporzionato rispetto a tutti i valori all'interno della regione di Pooling.
+         * La matrice ottenuta corrisponde alla matrice delle derivate della funzione di Loss
+         * rispetto agli ingressi.
+        */
+        in_h = 5;
+        in_w = 5;
+        out_h = in_h * 2;
+        out_w = in_w * 2;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        for(int i = 0; i < kernel_num_second_layer; i++){
+            inverse_avg_pooling<<<grid, block>>>(dP1 + (i * in_h * in_w), dA2 + (i * out_h * out_w), second_conv + (i * out_h * out_w), in_w, in_h, out_w, out_h, stride_p);
         }
-    }
 
-    float *dP0;
-    cudaMalloc((void **)&dP0, sizeof(float) * 14 * 14 * kernel_num_first_layer);
-    block = {1, (unsigned int)fc_second_dim};       //Da sistemare
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    for(int i = 0; i < kernel_num_first_layer; i++){
-        matrix_dot_product<<<grid, block>>>(first_pool + (i * 14 * 14), first_pool + (i * 14 * 14), dP0, 14, 14);
-        scalar_subtraction<<<grid, block>>>(dP0 + (i * 14 * 14), dP0 + (i * 14 * 14), 14, 14);
-        matrix_dot_product<<<grid, block>>>(dP0, dA1, dP0, 14, 14);
-    }
+        /****
+         * Calcoliamo la derivata delle uscite del secondo layer di Convoluzione.
+         * Iteriamo su tutti canali singolarmente e per ognuno calcoliamo
+         * la derivata della funzione tangente iperbolica.
+         * dC1 = dA2 * (1 - A2^2)
+         * Le dimensioni sono (10 x 10)
+        */
+        in_h = 10;
+        in_w = 10;
+        out_h = in_h;
+        out_w = in_w;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        for(int i = 0; i < kernel_num_second_layer; i++){
+            matrix_dot_product<<<grid, block>>>(second_conv + (i * in_w * in_h), second_conv + (i * in_w * in_h), dC1, out_w, out_h);
+            scalar_subtraction<<<grid, block>>>(dC1 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
+            matrix_dot_product<<<grid, block>>>(dC1, dA2, dC1, out_w, out_h);
+        }
 
-    float *dA0;
-    cudaMalloc((void **)&dA0, sizeof(float) * 28 * 28 * kernel_num_first_layer);
-    block = {14, 14};
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    for(int i = 0; i < kernel_num_second_layer; i++){
-        inverse_avg_pooling<<<grid, block>>>(dP0 + (i * 14 * 14), dA0 + (i * 28 * 28), first_conv + (i * 28 * 28), 14, 14, 28, 28, stride_p);
-    }
+        /****
+         * Cacoliamo la Full Convolution tra i kernel della seconda convoluzione, F1, e dC1 che è
+         * la derivata, rispetto alla Loss, calcolata fino all'uscita della seconda convoluzione.
+         * h_2 e w_2 si riferiscono alle dimensioni spaziali della matrice dC1.
+         * Per calcolare le dimensine di uscita usiamo la formual standard.
+         * Iteriamo su tutti i canali dei kernel, mantenendo fisso il canale di dC1 per un intero ciclo
+         * di j. Utilizziamo la funzione convolution3D che ci permette di aggiornare i valori di dA1.
+        */
+        in_h = KERNEL_DIM;
+        in_w = KERNEL_DIM;
+        h_2 = 10;
+        w_2 = 10;
+        padding_full_conv = h_2 - 1;
+        out_h = (in_h + 2 * padding - h_2) / stride_c + 1;
+        out_w = (in_w + 2 * padding - w_2) / stride_c + 1;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        for(int i = 0; i < kernel_num_second_layer; i++){
+            for(int j = 0; j < kernel_num_first_layer; j++){
+                convolution3D<<<grid, block>>>(kernels_second_layer_dev + (j * in_h * in_w + (i * in_h * in_w * kernel_num_first_layer)), dA1 + (j * out_h * out_w), dZ0 + (i * h_2 * w_2), out_h, out_w, padding_full_conv, stride_c);
+            }
+        }
+
+        /****
+         * Calcoliamo la derivata del secondo gruppo di kernel di dimensioni (5 x 5 x 6), di cui
+         * ne abbiamo 16.
+         * La convoluzione, mantenendo fisso il canale dell'uscita dC1, itera su tutti i canali dell'ingresso.
+         * Aggiorniamo il valore di tutte le derivate dei filtri.
+         * Utilizziamo la funzione convolution3D che ci permette di aggiornare i valori sulla matrice di output
+         * sommandoli invece di sovrascriverli.
+        */
+        in_h = 14;
+        in_w = 14;
+        h_2 = 10;
+        w_2 = 10;
+        out_h = KERNEL_DIM;
+        out_w = KERNEL_DIM;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        for(int i = 0; i < kernel_num_second_layer; i++){
+            for(int j = 0; j < kernel_num_first_layer; j++){
+                convolution3D<<<grid, block>>>(first_pool + (j * in_h * in_w), dF1 + (j * out_h * out_w + (i * out_h * out_w * kernel_num_second_layer)), dC1 + (i * h_2 * w_2), out_w, out_h, padding, stride_c);
+            }
+        }
+
+        /****
+         * Calcoliamo la derivata delle uscite del secondo layer di Pooling.
+         * Iteriamo su tutti canali singolarmente e per ognuno calcoliamo
+         * la derivata della funzione tangente iperbolica.
+         * dP0 = dA1 * (1 - A1^2)
+         * Le dimensioni sono (14 x 14)
+        */
+        in_h = 14;
+        in_w = 14;
+        out_h = in_h;
+        out_w = in_w;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        for(int i = 0; i < kernel_num_first_layer; i++){
+            matrix_dot_product<<<grid, block>>>(first_pool + (i * in_h * in_w), first_pool + (i * in_h * in_w), dP0, out_w, out_h);
+            scalar_subtraction<<<grid, block>>>(dP0 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
+            matrix_dot_product<<<grid, block>>>(dP0, dA1, dP0, out_w, out_h);
+        }
+
+        /****
+         * Derivata rispetto all'uscita del primo layer di Pooling.
+         * Ogni valore della matrici di ingresso dP0 viene moltiplicato per il valore
+         * proporzionato rispetto a tutti i valori all'interno della regione di Pooling.
+         * La matrice ottenuta, dA0, corrisponde alla matrice delle derivate della funzione di Loss
+         * rispetto agli ingressi.
+        */
+        in_h = 14;
+        in_w = 14;
+        out_h = in_h * 2;
+        out_w = in_w * 2;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        for(int i = 0; i < kernel_num_second_layer; i++){
+            inverse_avg_pooling<<<grid, block>>>(dP0 + (i * in_h * in_w), dA0 + (i * out_w * out_h), first_conv + (i * out_w * out_h), in_w, in_h, out_w, out_h, stride_p);
+        }
     
-    float *dC0;
-    cudaMalloc((void **)&dC0, sizeof(float) * 28 * 28 * kernel_num_first_layer);
-    block = {1, (unsigned int)fc_second_dim};       //Da sistemare
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    for(int i = 0; i < kernel_num_first_layer; i++){
-        matrix_dot_product<<<grid, block>>>(first_conv + (i * 28 * 28), first_conv + (i * 28 * 28), dC0, 28, 28);
-        scalar_subtraction<<<grid, block>>>(dC0 + (i * 28 * 28), dC0 + (i * 28 * 28), 28, 28);
-        matrix_dot_product<<<grid, block>>>(dC0, dA0, dC0, 28, 28);
-    }
+        /****
+         * Calcoliamo la derivata delle uscite del primo layer di Convoluzione.
+         * Iteriamo su tutti canali singolarmente e per ognuno calcoliamo
+         * la derivata della funzione tangente iperbolica.
+         * dC0 = dA0 * (1 - A0^2)
+         * Le dimensioni sono (28 x 28)
+        */
+        in_h = 28;
+        in_w = 28;
+        out_h = in_h;
+        out_w = in_w;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        for(int i = 0; i < kernel_num_first_layer; i++){
+            matrix_dot_product<<<grid, block>>>(first_conv + (i * in_w * in_h), first_conv + (i * in_w * in_h), dC0, out_w, out_h);
+            scalar_subtraction<<<grid, block>>>(dC0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
+            matrix_dot_product<<<grid, block>>>(dC0, dA0, dC0, out_w, out_h);
+        }
 
-    float *dF0;
-    out_h = 5;
-    out_w = 5;
-    cudaMalloc((void **)&dF0, sizeof(float) * out_h * out_w * kernel_num_first_layer);
-    block = {(unsigned int)out_w, (unsigned int)out_h};
-    grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-    for(int i = 0; i < kernel_num_second_layer; i++){
-        convolution<<<grid, block>>>(img_dev, dF0 + (i * 5 * 5), dC0 + (i * 1 * 1), KERNEL_DIM, KERNEL_DIM, padding, stride_c);
+        /****
+         * Calcoliamo la derivata del secondo gruppo di kernel di dimensioni (5 x 5), di cui
+         * ne abbiamo 6.
+         * La convoluzione, mantenendo fisso il canale dell'uscita dC0, itera su tutti i canali dell'ingresso.
+         * Aggiorniamo il valore di tutte le derivate dei filtri.
+         * Utilizziamo la funzione convolution3D che ci permette di aggiornare i valori sulla matrice di output
+         * sommandoli invece di sovrascriverli.
+        */
+        in_h = 32;
+        in_w = 32;
+        h_2 = 28;
+        w_2 = 28;
+        out_h = KERNEL_DIM;
+        out_w = KERNEL_DIM;
+        block = {(unsigned int)out_w, (unsigned int)out_h};
+        grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+        for(int i = 0; i < kernel_num_first_layer; i++){
+            convolution3D<<<grid, block>>>(img_dev, dF0 + (i * out_w * out_h), dC0 + (i * w_2 * h_2), out_w, out_h, padding, stride_c);
+        }    
     }
 
     /*-------------------------------
         Fine calcolo delle derivate.
         Inizio aggiornamento dei parametri
-    */
-
+    */  
     block = {1024};
     grid = {(5 * 5 * 6) / 1024 + 1};
     matrix_scalar_product<<<grid, block>>>(dF0, LEARNING_RATE, 5 * 5 * 6);
@@ -509,9 +605,6 @@ int main(){
     grid = {(10 * 84) / 1024 + 1};
     matrix_scalar_product<<<grid, block>>>(dW2, LEARNING_RATE, 10 * 84);
     subtraction<<<grid, block>>>(fc_second_layer_dev, fc_second_layer_dev, dW2, 10 * 84);
-   
-    
-    }
 
 
 

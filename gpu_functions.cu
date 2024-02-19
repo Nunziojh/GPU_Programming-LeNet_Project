@@ -173,11 +173,12 @@ __global__ void matrix_dot_product(float *in1, float *in2, float *out, int w, in
     }
 }
 
-__global__ void matrix_scalar_product(float *io, float scalar, int dim){
+__global__ void matrix_scalar_product(float *io, float scalar, int h, int w){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
+    int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
-    if(idx < dim){
-        io[idx] = io[idx] * scalar;
+    if(idx < w && idy < h){
+        io[idy * w + idx] = io[idy * w + idx] * scalar;
     }
 }
 

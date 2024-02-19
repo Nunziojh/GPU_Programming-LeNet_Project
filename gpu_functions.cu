@@ -32,7 +32,7 @@ __global__ void convolution(float *in, float *out, float *kernel, int new_h, int
 
         for(i = -r; i <= r; i++){
             for(j = -c; j <= c; j++){
-                val = ((new_idy + i) < 0 || (new_idy + i) >= H || (new_idx + j) < 0 || (new_idx + j) >= W) ? 0 : in[(new_idy + i) * W + new_idx + j];
+                val = ((new_idy + i) < 0 || (new_idy + i) >= new_h || (new_idx + j) < 0 || (new_idx + j) >= new_w) ? 0 : in[(new_idy + i) * new_w + new_idx + j];
                 tmp += kernel[(r-i) * KERNEL_DIM + (c-j)] * val;
             }
         }
@@ -58,7 +58,7 @@ __global__ void convolution3D(float *in, float *out, float *kernel, int new_h, i
 
         for(i = -r; i <= r; i++){
             for(j = -c; j <= c; j++){
-                val = ((new_idy + i) < 0 || (new_idy + i) >= H || (new_idx + j) < 0 || (new_idx + j) >= W) ? 0 : in[(new_idy + i) * W + new_idx + j];
+                val = ((new_idy + i) < 0 || (new_idy + i) >= new_h || (new_idx + j) < 0 || (new_idx + j) >= new_w) ? 0 : in[(new_idy + i) * new_w + new_idx + j];
                 tmp += kernel[(r-i) * KERNEL_DIM + (c-j)] * val;
             }
         }
@@ -173,7 +173,7 @@ __global__ void matrix_dot_product(float *in1, float *in2, float *out, int w, in
     }
 }
 
-__global__ void matrix_scalar_product(float *io, float scalar, int h, int w){
+__global__ void matrix_scalar_product(float *io, float scalar, int w, int h){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
@@ -188,7 +188,7 @@ __global__ void tanh(float *in, int w, int h){
 
     if(idx < w && idy < h){
 
-        in[idy * w + idx] = 1 / (1 + exp(in[idy * w + idx]));
+        in[idy * w + idx] = 1.0 / (1.0 + exp(in[idy * w + idx]));
     }
 }
 

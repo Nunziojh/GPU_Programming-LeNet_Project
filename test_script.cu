@@ -57,6 +57,14 @@ __host__ void debug_print(float *matrice_dev, int w, int h, int c){
     return;
 }
 
+__global__ void matrix_scalar_product(float *io, float scalar, int w, int h){
+    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+    int idy = blockDim.y * blockIdx.y + threadIdx.y;
+
+    if(idx < w && idy < h){
+        io[idy * w + idx] = io[idy * w + idx] * scalar;
+    }
+}
 
 int main(){
     srand(time(NULL));
@@ -70,6 +78,8 @@ int main(){
     int kernel_number = 6;
     int out_h = (in_h + 2 * padding - kernel_h) / stride_c + 1;
     int out_w = (in_w + 2 * padding - kernel_w) / stride_c + 1;
+    float max_val = 800;
+    float min_val = 0;
 
 
     dim3 block = {(unsigned int)out_w, (unsigned int)out_h};
@@ -77,7 +87,7 @@ int main(){
 
     float *img = (float *)malloc(sizeof(float) * in_h * in_w);
     float *kernel = (float *)malloc(sizeof(float) * kernel_h * kernel_w * kernel_number);
-    for(int i = 0; i < in_h*in_w; i++) img[i] = (float)(rand() % 800) / (float)800;
+    for(int i = 0; i < in_h*in_w; i++) img[i] = (float)(rand() % (int)(max_val - min_val)) - min_val;
     for(int i = 0; i < kernel_h*kernel_w*kernel_number; i++) kernel[i] = (float)rand() / (float)RAND_MAX;
 
     float *img_dev, *first_conv, *kernel_dev;
@@ -87,6 +97,9 @@ int main(){
 
     cudaMemcpy(img_dev, img, sizeof(float) * in_h * in_w , cudaMemcpyHostToDevice);
     cudaMemcpy(kernel_dev, kernel, sizeof(float) * kernel_h * kernel_w * kernel_number, cudaMemcpyHostToDevice);
+
+    //pre processing
+    matrix_scalar_product<<<{1, 1}, {32, 32}>>>(img_dev, (float)(1.0 / (max_val - min_val)), in_w, in_h);
 
     printf("INIZIO---------\n");
     printf("img:\n");

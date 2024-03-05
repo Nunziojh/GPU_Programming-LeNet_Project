@@ -15,7 +15,7 @@ __host__ void debug_print(float *matrice_dev, int w, int h, int c){
     for(int i = 0; i < c; i++){
         for(int j = 0; j < h; j++){
             for(int k = 0; k < w; k++){
-                printf("%f ", tmp[(i * h + j) * w + k]);
+                printf("%e ", tmp[(i * h + j) * w + k]);
             }
             printf("\n");
         }
@@ -27,7 +27,7 @@ __host__ void debug_print(float *matrice_dev, int w, int h, int c){
 }
 
 int main(){
-    srand(time(NULL));
+    srand(2);
 
     /***
      * Definizione dei parametri della rete.
@@ -145,11 +145,21 @@ int main(){
     cudaMemcpy(fc_second_layer_dev, fc_second_layer, sizeof(float) * fc_second_dim * fc_third_dim, cudaMemcpyHostToDevice);
     cudaMemcpy(img_dev, img, sizeof(float) * in_w * in_h, cudaMemcpyHostToDevice);
 
+    /*----------------------------------------------------------------------------------------------------------------------------
+        La successiva riga di codice serve a normalizzare i valori nell'intervallo [0, 1] così che la prima
+        attivazione della tanh non debba lavorare con valori altissimo e dia problemi di calcolo.
+        Questo lavoro di normalizzazione viene fatto in automatico nei livelli successivi per via della
+        presenza della funzione tanh che riporta tutti i valori nell'intervallo [-1, 1].
+        Per ora questa prima normalizzazione non sottrae la media ma divide solo per la deiazione standard.    
+    */
+    matrix_scalar_product<<<{1, 1}, {32, 32}>>>(img_dev, (float)(1.0 / (float)(1024)), 32, 32);
+
+
     /****
      * Inizio del ciclo per fare apprendimento. L'indice da usare è il numero di epoche
      * per le quali si vuole addestrare la rete.
     */
-    for(int epoch = 0; epoch < 2; epoch++){
+    for(int epoch = 0; epoch < 1; epoch++){
         for(int batch_dim = 0; batch_dim < 1; batch_dim++){
 
             /****
@@ -167,12 +177,7 @@ int main(){
             for(int i = 0; i < kernel_num_first_layer; i++){
                 convolution<<<grid, block>>>(img_dev, first_conv + (i * out_h * out_w), kernels_first_layer_dev + (i * KERNEL_DIM * KERNEL_DIM), out_w, out_h, padding, stride_c);
                 tanh<<<grid, block>>>(first_conv + (i * out_h * out_w), out_w, out_h);
-                if(i == 0)
-                    debug_print(first_conv, 28, 28, 6);
             }
-
-            //printf("First Conolution:\n");
-            //debug_print(first_conv, 28, 28, 6);
 
             /****
              * Calcoliamo il primo layer di Average Pooling con la relativa funzione di attivazione tanh.
@@ -245,12 +250,19 @@ int main(){
                 }
                 tanh<<<grid, block>>>(third_conv + (i * out_h * out_w), out_w, out_h);
             }
+            /*
+            printf("First kernel of third layer\n");
+            debug_print(kernels_third_layer_dev + (4 * 5 * 5 * 16), 5, 5, 16);*/
+            //printf("Result\n");
+            //debug_print(third_conv, 1, 1, 120);
 
             /****
              * A partire dalla matrice di dimensini (120 x m) ottenuta dall'ultimo layer convolutivo, calcoliamo il primo
              * livello di Fully Connected usando come matrice di pesi la variabile 'fc_first_layer_dev' di dimensioni
              * (84 x 120). Otteniamo una matrice risultato di dimensioni (84 x m).
             */
+            //printf("Pesi:\n");
+            //debug_print(fc_first_layer_dev, 120, 84, 1);
             in_h = fc_first_dim;
             in_w = m;
             out_h = fc_second_dim;
@@ -258,7 +270,22 @@ int main(){
             block = {(unsigned int)m, (unsigned int)fc_second_dim};
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             matrix_product<<<grid, block>>>(fc_first_layer_dev, third_conv, second_fc, m, fc_second_dim, fc_first_dim);
+
+            //printf("Valori prima:\n");
+            float *tmp = (float *)malloc(sizeof(float) * 84);
+            cudaMemcpy(tmp, second_fc, sizeof(float) * 84, cudaMemcpyDeviceToHost);
+
+            for(int i = 0; i < 84; i++){
+                printf("%f\n", tmp[i]);
+            }
+
+            free(tmp);
+                    
             tanh<<<grid, block>>>(second_fc, fc_second_dim, 1);
+
+            
+            //printf("Valori dopo:\n");
+            debug_print(second_fc, 1, 120, 1);
 
             /****
              * A partire dalla matrice di dimensini (84 x m) ottenuta al livello FC precedente, calcoliamo il secondo
@@ -291,7 +318,7 @@ int main(){
             loss = 0.0;
             for(int i = 0; i < fc_third_dim; i++) loss += target[i] * log(prediction[i]);
             loss = -loss;
-            printf("Loss = %f\n", loss);
+            printf("Loss = %e\n", loss);
 
             // Inizio della BackPropagation
 

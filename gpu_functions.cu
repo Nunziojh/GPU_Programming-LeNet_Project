@@ -10,7 +10,7 @@
 #define KERNEL_NUM 22
 #define POOLING_WINDOW_SIZE 2
 #define LEARNING_RATE 0.5*/
-
+#include <stdio.h>
 
 #include "gpu_functions.h"
 
@@ -125,13 +125,14 @@ __global__ void matrix_product(float *in1, float *in2, float *out, int w_out, in
 
     if(idx < w_out && idy < h_out){
 
-        float tmp = 0;
-        in1 = in1 + idy * w_in1;       //Inutile
-        for(int i = 0, j = 0; i < w_in1; i++, j += w_out){
-            tmp += in1[i] * in2[j + idx];
+        float tmp = 0.0;
+        in1 = in1 + idy * w_in1;
+        for(int i = 0, j = idx; i < w_in1; i++, j += w_out){
+            tmp += in1[i] * in2[j];
         }
 
         out[idy * w_out + idx] = tmp;
+        printf("%f\n", out[idy * w_out + idx]);
     }
 }
 

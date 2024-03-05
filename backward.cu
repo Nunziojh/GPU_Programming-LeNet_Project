@@ -8,18 +8,21 @@
 //#include "mnist.h"
 
 
-__host__ void debug_print(float *matrice_dev, int w, int h, int c){
-    float *tmp = (float *)malloc(sizeof(float) * w * h * c);
-    cudaMemcpy(tmp, matrice_dev, sizeof(float) * w * h * c, cudaMemcpyDeviceToHost);
+__host__ void debug_print(float *matrice_dev, int w, int h, int c, int n){
+    float *tmp = (float *)malloc(sizeof(float) * w * h * c * n);
+    cudaMemcpy(tmp, matrice_dev, sizeof(float) * w * h * c * n, cudaMemcpyDeviceToHost);
 
-    for(int i = 0; i < c; i++){
-        for(int j = 0; j < h; j++){
-            for(int k = 0; k < w; k++){
-                printf("%e ", tmp[(i * h + j) * w + k]);
+    for(int l = 0; l < n; l++){
+        for(int i = 0; i < c; i++){
+            for(int j = 0; j < h; j++){
+                for(int k = 0; k < w; k++){
+                    printf("%e ",tmp[(((k + j * w) + i * (h * w)) + l * (h * w * c))]);
+                }
+                printf("\n");
             }
-            printf("\n");
+            printf("----\n");
         }
-        printf("----\n");
+        printf("\n##########\n--------------------\n##########\n");
     }
 
     free(tmp);
@@ -88,6 +91,7 @@ int main(){
     float *fc_first_layer_dev, *second_fc;
     float *fc_second_layer_dev, *third_fc;
     float *img_dev;
+    float *prediction_dev, *target_dev;
 
     float *dZ2, *dW2;
     float *dZ1, *gdZ1, *dW1;
@@ -115,6 +119,9 @@ int main(){
     cudaMalloc((void **)&third_fc, sizeof(float) * 10 * m);
 
     cudaMalloc((void **)&img_dev, sizeof(float) * in_w * in_w);
+    
+    cudaMalloc((void **)&prediction_dev, sizeof(float) * fc_third_dim);
+    cudaMalloc((void **)&target_dev, sizeof(float) * fc_third_dim);
 
     cudaMalloc((void **)&dZ2, sizeof(float) * fc_third_dim * m);
     cudaMalloc((void **)&dW2, sizeof(float) * fc_third_dim * fc_second_dim);
@@ -152,7 +159,7 @@ int main(){
         presenza della funzione tanh che riporta tutti i valori nell'intervallo [-1, 1].
         Per ora questa prima normalizzazione non sottrae la media ma divide solo per la deiazione standard.    
     */
-    matrix_scalar_product<<<{1, 1}, {32, 32}>>>(img_dev, (float)(1.0 / (float)(1024)), 32, 32);
+    matrix_scalar_product<<<{1, 1}, {32, 32}>>>(img_dev, (float)(1.0 / (float)(1024)), 32, 32, 0);
 
 
     /****
@@ -176,7 +183,7 @@ int main(){
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             for(int i = 0; i < kernel_num_first_layer; i++){
                 convolution<<<grid, block>>>(img_dev, first_conv + (i * out_h * out_w), kernels_first_layer_dev + (i * KERNEL_DIM * KERNEL_DIM), out_w, out_h, padding, stride_c);
-                tanh<<<grid, block>>>(first_conv + (i * out_h * out_w), out_w, out_h);
+                tanh<<<grid, block>>>(first_conv + (i * out_h * out_w), out_w, out_h, 0);
             }
 
             /****
@@ -193,7 +200,7 @@ int main(){
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             for(int i = 0; i < kernel_num_first_layer; i++){
                 avg_pooling<<<grid, block>>>(first_conv + (i * in_h * in_w), first_pool + (i * out_h * out_w), in_h, in_w, out_h, out_w, stride_p);
-                tanh<<<grid, block>>>(first_pool + (i * out_h * out_w), out_w, out_h);
+                tanh<<<grid, block>>>(first_pool + (i * out_h * out_w), out_w, out_h, 0);
             }
 
             /****
@@ -213,7 +220,7 @@ int main(){
                 for(int j = 0; j < kernel_num_first_layer; j++){
                     convolution3D<<<grid, block>>>(first_pool + (j * in_h * in_w), second_conv + (i * out_h * out_w), kernels_second_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer)), out_h, out_w, padding, stride_c);
                 }
-                tanh<<<grid, block>>>(second_conv + (i * out_h * out_w), out_w, out_h);
+                tanh<<<grid, block>>>(second_conv + (i * out_h * out_w), out_w, out_h, 0);
             }
 
             /****
@@ -228,7 +235,7 @@ int main(){
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             for(int i = 0; i < kernel_num_second_layer; i++){
                 avg_pooling<<<grid, block>>>(second_conv + (i * in_h * in_w), second_pool + (i * out_h * out_w), in_h, in_w, out_h, out_w, stride_p);
-                tanh<<<grid, block>>>(second_pool + (i * out_h * out_w), out_w, out_h);
+                tanh<<<grid, block>>>(second_pool + (i * out_h * out_w), out_w, out_h, 0);
             }
 
             /****
@@ -248,21 +255,14 @@ int main(){
                 for(int j = 0; j < kernel_num_second_layer; j++){
                     convolution3D<<<grid, block>>>(second_pool + (j * in_h * in_w), third_conv + (i * out_h * out_w), kernels_third_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer)), out_h, out_w, padding, stride_c);
                 }
-                tanh<<<grid, block>>>(third_conv + (i * out_h * out_w), out_w, out_h);
+                tanh<<<grid, block>>>(third_conv + (i * out_h * out_w), out_w, out_h, 0);
             }
-            /*
-            printf("First kernel of third layer\n");
-            debug_print(kernels_third_layer_dev + (4 * 5 * 5 * 16), 5, 5, 16);*/
-            //printf("Result\n");
-            //debug_print(third_conv, 1, 1, 120);
 
             /****
              * A partire dalla matrice di dimensini (120 x m) ottenuta dall'ultimo layer convolutivo, calcoliamo il primo
              * livello di Fully Connected usando come matrice di pesi la variabile 'fc_first_layer_dev' di dimensioni
              * (84 x 120). Otteniamo una matrice risultato di dimensioni (84 x m).
             */
-            //printf("Pesi:\n");
-            //debug_print(fc_first_layer_dev, 120, 84, 1);
             in_h = fc_first_dim;
             in_w = m;
             out_h = fc_second_dim;
@@ -270,22 +270,7 @@ int main(){
             block = {(unsigned int)m, (unsigned int)fc_second_dim};
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             matrix_product<<<grid, block>>>(fc_first_layer_dev, third_conv, second_fc, m, fc_second_dim, fc_first_dim);
-
-            //printf("Valori prima:\n");
-            float *tmp = (float *)malloc(sizeof(float) * 84);
-            cudaMemcpy(tmp, second_fc, sizeof(float) * 84, cudaMemcpyDeviceToHost);
-
-            for(int i = 0; i < 84; i++){
-                printf("%f\n", tmp[i]);
-            }
-
-            free(tmp);
-                    
-            tanh<<<grid, block>>>(second_fc, fc_second_dim, 1);
-
-            
-            //printf("Valori dopo:\n");
-            debug_print(second_fc, 1, 120, 1);
+            tanh<<<grid, block>>>(second_fc, 1, fc_second_dim, 0);
 
             /****
              * A partire dalla matrice di dimensini (84 x m) ottenuta al livello FC precedente, calcoliamo il secondo
@@ -305,11 +290,14 @@ int main(){
              * sull'host per poter terminare il calcolo della Softmax facendo la sommatoria di tutti i valori ottenuti
              * per poi dividere ogni elemento del vettore per il valore calcolato.
             */
-            exponential<<<grid, block>>>(second_fc, fc_third_dim);
-            cudaMemcpy(prediction, fc_second_layer_dev, sizeof(float) * fc_third_dim, cudaMemcpyDeviceToHost);
+            exponential<<<grid, block>>>(third_fc, fc_third_dim);
+            cudaMemcpy(prediction, third_fc, sizeof(float) * fc_third_dim, cudaMemcpyDeviceToHost);
             summation = 0.0;
             for(int i = 0; i < fc_third_dim; i++) summation += prediction[i];
-            for(int i = 0; i < fc_third_dim; i++) prediction[i] = prediction[i] / summation;
+            for(int i = 0; i < fc_third_dim; i++) {
+                prediction[i] = prediction[i] / summation;
+                printf("\t\t%f\n", prediction[i]);
+            }
             //for(int i = 0; i < fc_third_dim; i++) printf("%2.2f\n", prediction[i]);
 
             /****
@@ -322,19 +310,16 @@ int main(){
 
             // Inizio della BackPropagation
 
-        // TODO: CONTROLLARE LA CORRETTEZZA DEL CALCOLO CHE VA DAL VALORE DELLA LOSS A DZ2
-        float *prediction_dev, *target_dev;
-        cudaMalloc((void **)&prediction_dev, sizeof(float) * fc_third_dim);
-        cudaMalloc((void **)&target_dev, sizeof(float) * fc_third_dim);
-        cudaMemcpy(prediction_dev, prediction, sizeof(float) * fc_third_dim, cudaMemcpyHostToDevice);
-        cudaMemcpy(target_dev, target, sizeof(float) * fc_third_dim, cudaMemcpyHostToDevice);
+            // TODO: CONTROLLARE LA CORRETTEZZA DEL CALCOLO CHE VA DAL VALORE DELLA LOSS A DZ2
+            cudaMemcpy(prediction_dev, prediction, sizeof(float) * fc_third_dim, cudaMemcpyHostToDevice);
+            cudaMemcpy(target_dev, target, sizeof(float) * fc_third_dim, cudaMemcpyHostToDevice);
 
-        float *dZ2;
-        cudaMalloc((void **)&dZ2, sizeof(float) * fc_third_dim);            // Da moltiplicare per il numero di immagini usate nel batch
-        block = {(unsigned int)fc_third_dim};
-        grid = {(unsigned int)(block.x / 1024 +1)};
-        subtraction<<<grid, block>>>(dZ2, prediction_dev, target_dev, fc_third_dim);
-        // FINE CONTROLLO
+            //float *dZ2;                             // Da moltiplicare per il numero di immagini usate nel batch
+            block = {(unsigned int)fc_third_dim};
+            grid = {(unsigned int)(block.x / 1024 + 1)};
+            subtraction<<<grid, block>>>(dZ2, prediction_dev, target_dev, fc_third_dim);
+            // FINE CONTROLLO
+
 
             /****
              * Calcoliamo la derivata dei pesi tra il secondo e il terzo livello FC.
@@ -349,8 +334,8 @@ int main(){
             out_w = fc_second_dim;
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-            matrix_product_transpose<<<grid, block>>>(dZ2, second_fc, dW2, out_h, out_w, in_w);
-            matrix_scalar_product<<<grid, block>>>(dW2, (1.0 / m), out_w, out_h);
+            matrix_product_transpose<<<grid, block>>>(dZ2, second_fc, dW2, out_w, out_h, in_w);
+            matrix_scalar_product<<<grid, block>>>(dW2, (1.0 / m), out_w, out_h, 0);
         
             /****
              * Calcoliamo la derivata delle uscite del secondo layer FC.
@@ -383,10 +368,12 @@ int main(){
             in_w = m;
             out_h = fc_second_dim;
             out_w = fc_first_dim;
-            block = {(unsigned int)out_w, (unsigned int)out_h};
-            grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+            block = {(unsigned int)32, (unsigned int)32};
+            grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             matrix_product_transpose<<<grid, block>>>(dZ1, third_conv, dW1, out_w, out_h, in_w);
-            matrix_scalar_product<<<grid, block>>>(dW1, (1.0 / m), out_w, out_h);
+            matrix_scalar_product<<<grid, block>>>(dW1, (1.0 / m), out_w, out_h, 1);
+
+            debug_print(dW1, 120, 84, 1, 1);
 
             /****
              * Calcoliamo la derivata delle uscite del secondo layer FC.
@@ -632,43 +619,34 @@ int main(){
         /*-------------------------------
             Fine calcolo delle derivate.
             Inizio aggiornamento dei parametri
-        */  
+        */
         block = {1024};
         grid = {(5 * 5 * 6) / 1024 + 1};
-        matrix_scalar_product<<<grid, block>>>(dF0, LEARNING_RATE, 5 * 5 * 6, 1);
+        matrix_scalar_product<<<grid, block>>>(dF0, LEARNING_RATE, 5 * 5 * 6, 1, 0);
         subtraction<<<grid, block>>>(kernels_first_layer_dev, kernels_first_layer_dev, dF0, 5 * 5 * 6);
 
         block = {1024};
         grid = {(5 * 5 * 6 * 16) / 1024 + 1};
-        matrix_scalar_product<<<grid, block>>>(dF1, LEARNING_RATE, 5 * 5 * 6 * 16, 1);
+        matrix_scalar_product<<<grid, block>>>(dF1, LEARNING_RATE, 5 * 5 * 6 * 16, 1, 0);
         subtraction<<<grid, block>>>(kernels_second_layer_dev, kernels_second_layer_dev, dF1, 5 * 5 * 6 * 16);
 
         block = {1024};
         grid = {(5 * 5 * 6 * 120) / 1024 + 1};
-        matrix_scalar_product<<<grid, block>>>(dF2, LEARNING_RATE, 5 * 5 * 6 * 120, 1);
+        matrix_scalar_product<<<grid, block>>>(dF2, LEARNING_RATE, 5 * 5 * 6 * 120, 1, 0);
         subtraction<<<grid, block>>>(kernels_third_layer_dev, kernels_third_layer_dev, dF2, 5 * 5 * 6 * 120);
 
         block = {1024};
         grid = {(84 * 120) / 1024 + 1};
-        matrix_scalar_product<<<grid, block>>>(dW1, LEARNING_RATE, 84 * 120, 1);
+        matrix_scalar_product<<<grid, block>>>(dW1, LEARNING_RATE, 84 * 120, 1, 0);
         subtraction<<<grid, block>>>(fc_first_layer_dev, fc_first_layer_dev, dW1, 84 * 120);
 
         block = {1024};
         grid = {(10 * 84) / 1024 + 1};
-        matrix_scalar_product<<<grid, block>>>(dW2, LEARNING_RATE, 10 * 84, 1);
+        matrix_scalar_product<<<grid, block>>>(dW2, LEARNING_RATE, 10 * 84, 1, 0);
         subtraction<<<grid, block>>>(fc_second_layer_dev, fc_second_layer_dev, dW2, 10 * 84);
 
     }
 
-
-
-
-
-
-
-
-
-/*
     free(kernels_first_layer);
     free(kernels_second_layer);
     free(kernels_third_layer);
@@ -677,22 +655,44 @@ int main(){
     free(prediction);
     free(img);
 
-    cudaFree(kernels_first_layer_dev);
-    cudaFree(kernels_second_layer_dev);
-    cudaFree(kernels_third_layer_dev);
-    cudaFree(fc_first_layer_dev);
-    cudaFree(fc_second_layer_dev);
+    
 
-    cudaFree(img_dev);
-    cudaFree(first_conv);
-    cudaFree(first_pool);
-    cudaFree(second_conv);
-    cudaFree(second_pool);
-    cudaFree(third_conv);
-    cudaFree(second_fc);
-    cudaFree(third_fc);
+    cudaFree(kernels_first_layer_dev); //
+    cudaFree(kernels_second_layer_dev); //
+    cudaFree(kernels_third_layer_dev); //
+    cudaFree(fc_first_layer_dev); //
+    cudaFree(fc_second_layer_dev); //
 
-    */
+    cudaFree(img_dev); //
+    cudaFree(first_conv); //
+    cudaFree(first_pool); //
+    cudaFree(second_conv); //
+    cudaFree(second_pool); //
+    cudaFree(third_conv); //
+    cudaFree(second_fc); //
+    cudaFree(third_fc); //
+
+    cudaFree(prediction_dev);
+    cudaFree(target_dev);
+
+    cudaFree(dZ2);
+    cudaFree(dW2);
+    cudaFree(dZ1);
+    cudaFree(gdZ1);
+    cudaFree(dW1);
+    cudaFree(dZ0);
+    cudaFree(gdZ0);
+    cudaFree(dF2);
+    cudaFree(dA3);
+    cudaFree(dP1);
+    cudaFree(dA2);
+    cudaFree(dC1);
+    cudaFree(dA1);
+    cudaFree(dF1);
+    cudaFree(dP0);
+    cudaFree(dA0);
+    cudaFree(dC0);
+    cudaFree(dF0);
 
     return 0;
 }

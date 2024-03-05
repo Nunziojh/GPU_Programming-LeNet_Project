@@ -132,7 +132,7 @@ __global__ void matrix_product(float *in1, float *in2, float *out, int w_out, in
         }
 
         out[idy * w_out + idx] = tmp;
-        printf("%f\n", out[idy * w_out + idx]);
+        //printf("\t(%d, %d)%e\n", idy, idx, out[idy * w_out + idx]);
     }
 }
 
@@ -174,22 +174,24 @@ __global__ void matrix_dot_product(float *in1, float *in2, float *out, int w, in
     }
 }
 
-__global__ void matrix_scalar_product(float *io, float scalar, int w, int h){
+__global__ void matrix_scalar_product(float *io, float scalar, int w, int h, int stampa){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
     if(idx < w && idy < h){
         io[idy * w + idx] = io[idy * w + idx] * scalar;
+        if(stampa == 1) printf("\t(%d, %d) %e\n", idy, idx, io[idy * w + idx]);
     }
 }
 
-__global__ void tanh(float *in, int w, int h){
+__global__ void tanh(float *in, int w, int h, int stampa){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
     if(idx < w && idy < h){
 
         in[idy * w + idx] = 1.0 / (1.0 + exp(in[idy * w + idx]));
+        if(stampa == 1) printf("\t(%d, %d) %e\n", idy, idx, in[idy * w + idx]);
     }
 }
 

@@ -17,8 +17,8 @@ __global__ void matrix_product(float *in1, float *in2, float *out, int w_out, in
 __global__ void matrix_transpose_product(float *in1, float *in2, float *out, int w_out, int h_out, int h_in1);
 __global__ void matrix_product_transpose(float *in1, float *in2, float *out, int w_out, int h_out, int w_in1);
 __global__ void matrix_dot_product(float *in1, float *in2, float *out, int w, int h);
-__global__ void matrix_scalar_product(float *io, float scalar, int w, int h);
-__global__ void tanh(float *in, int w, int h);
+__global__ void matrix_scalar_product(float *io, float scalar, int w, int h, int stampa);
+__global__ void tanh(float *in, int w, int h, int stampa);
 __global__ void exponential(float *in, int len);
 __global__ void subtraction(float *out, float *in1, float*in2, int dim);
 __global__ void scalar_subtraction(float *out, float *in, int w, int h);

@@ -40,15 +40,15 @@ __global__ void convolution(float *in, float *out, float *kernel, int new_h, int
     }
 }
 
-__global__ void convolution3D(float *in, float *out, float *kernel, int new_h, int new_w, int padding, int stride){
+__global__ void convolution3D(float *in, float *out, float *kernel, int new_h, int new_w, int padding, int stride, int kernel_dim){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
     if(idx < new_w && idy < new_h){
 
         int i, j;
-        int r = KERNEL_DIM / 2;
-        int c = KERNEL_DIM / 2;
+        int r = kernel_dim / 2;
+        int c = kernel_dim / 2;
 
         float tmp = 0;
         float val;
@@ -59,7 +59,7 @@ __global__ void convolution3D(float *in, float *out, float *kernel, int new_h, i
         for(i = -r; i <= r; i++){
             for(j = -c; j <= c; j++){
                 val = ((new_idy + i) < 0 || (new_idy + i) >= new_h || (new_idx + j) < 0 || (new_idx + j) >= new_w) ? 0 : in[(new_idy + i) * new_w + new_idx + j];
-                tmp += kernel[(r-i) * KERNEL_DIM + (c-j)] * val;
+                tmp += kernel[(r-i) * kernel_dim + (c-j)] * val;
             }
         }
         out[idy * new_w + idx] += tmp;

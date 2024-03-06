@@ -1,7 +1,7 @@
 # LeNet-5 - CUDA implementation
 **Report for the GPU Programming course**
 ### Authors
-- **Pietro Mazza** - *s123456*
+- **Pietro Mazza** - *s314897*
 - **Nunzio Messineo** - *s315067*
 
 ### Introduction

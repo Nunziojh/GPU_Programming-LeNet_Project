@@ -10,7 +10,7 @@
 
 
 __global__ void convolution(float *in, float *out, float *kernel, int new_h, int new_w, int padding, int stride);
-__global__ void convolution3D(float *in, float *out, float *kernel, int new_h, int new_w, int padding, int stride);
+__global__ void convolution3D(float *in, float *out, float *kernel, int new_h, int new_w, int padding, int stride, int kernel_dim);
 __global__ void avg_pooling(float *in, float *out, int h, int w, int new_h, int new_w, int stride);
 __global__ void inverse_avg_pooling(float *in, float *out, float *m, int w_in, int h_in, int new_w, int new_h, int stride);
 __global__ void matrix_product(float *in1, float *in2, float *out, int w_out, int h_out, int w_in1);

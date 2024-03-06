@@ -166,7 +166,7 @@ int main(){
      * Inizio del ciclo per fare apprendimento. L'indice da usare è il numero di epoche
      * per le quali si vuole addestrare la rete.
     */
-    for(int epoch = 0; epoch < 1; epoch++){
+    for(int epoch = 0; epoch < 2; epoch++){
         for(int batch_dim = 0; batch_dim < 1; batch_dim++){
 
             /****
@@ -218,7 +218,7 @@ int main(){
             clean_vector<<<((out_h * out_w * kernel_num_second_layer) / 1024), 1024>>>(second_conv, out_h * out_w * kernel_num_second_layer);
             for(int i = 0; i < kernel_num_second_layer; i++){
                 for(int j = 0; j < kernel_num_first_layer; j++){
-                    convolution3D<<<grid, block>>>(first_pool + (j * in_h * in_w), second_conv + (i * out_h * out_w), kernels_second_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer)), out_h, out_w, padding, stride_c);
+                    convolution3D<<<grid, block>>>(first_pool + (j * in_h * in_w), second_conv + (i * out_h * out_w), kernels_second_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer)), out_h, out_w, padding, stride_c, KERNEL_DIM);
                 }
                 tanh<<<grid, block>>>(second_conv + (i * out_h * out_w), out_w, out_h, 0);
             }
@@ -253,7 +253,7 @@ int main(){
             clean_vector<<<((out_h * out_w * kernel_num_third_layer) / 1024), 1024>>>(third_conv, out_h * out_w * kernel_num_third_layer);
             for(int i = 0; i < kernel_num_third_layer; i++){
                 for(int j = 0; j < kernel_num_second_layer; j++){
-                    convolution3D<<<grid, block>>>(second_pool + (j * in_h * in_w), third_conv + (i * out_h * out_w), kernels_third_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer)), out_h, out_w, padding, stride_c);
+                    convolution3D<<<grid, block>>>(second_pool + (j * in_h * in_w), third_conv + (i * out_h * out_w), kernels_third_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer)), out_h, out_w, padding, stride_c, KERNEL_DIM);
                 }
                 tanh<<<grid, block>>>(third_conv + (i * out_h * out_w), out_w, out_h, 0);
             }
@@ -371,9 +371,7 @@ int main(){
             block = {(unsigned int)32, (unsigned int)32};
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             matrix_product_transpose<<<grid, block>>>(dZ1, third_conv, dW1, out_w, out_h, in_w);
-            matrix_scalar_product<<<grid, block>>>(dW1, (1.0 / m), out_w, out_h, 1);
-
-            debug_print(dW1, 120, 84, 1, 1);
+            matrix_scalar_product<<<grid, block>>>(dW1, (1.0 / m), out_w, out_h, 0);
 
             /****
              * Calcoliamo la derivata delle uscite del secondo layer FC.
@@ -413,7 +411,7 @@ int main(){
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_third_layer; i++){
                 for(int j = 0; j < kernel_num_second_layer; j++){
-                    convolution3D<<<grid, block>>>(second_pool + (j * in_h * in_w), dF2 + (j * out_w * out_h + (i * out_w * out_h * kernel_num_third_layer)), dZ0 + (i * h_2 * w_2), KERNEL_DIM, KERNEL_DIM, padding, stride_c);
+                    convolution3D<<<grid, block>>>(second_pool + (j * in_h * in_w), dF2 + (j * out_w * out_h + (i * out_w * out_h * kernel_num_second_layer)), dZ0 + (i * h_2 * w_2), KERNEL_DIM, KERNEL_DIM, padding, stride_c, h_2);
                 }
             }
 
@@ -430,13 +428,13 @@ int main(){
             h_2 = 1;
             w_2 = 1;
             padding_full_conv = h_2 - 1;
-            out_h = (in_h + 2 * padding - h_2) / stride_c + 1;
-            out_w = (in_w + 2 * padding - w_2) / stride_c + 1;
+            out_h = (in_h + 2 * padding_full_conv - h_2) / stride_c + 1;
+            out_w = (in_w + 2 * padding_full_conv - w_2) / stride_c + 1;
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_third_layer; i++){
                 for(int j = 0; j < kernel_num_second_layer; j++){
-                    convolution3D<<<grid, block>>>(kernels_third_layer_dev + (j * in_h * in_w + (i * in_h * in_w * kernel_num_second_layer)), dA3 + (j * out_h * out_w), dZ0 + (i * h_2 * w_2), out_h, out_w, padding_full_conv, stride_c);
+                    convolution3D<<<grid, block>>>(kernels_third_layer_dev + (j * in_h * in_w + (i * in_h * in_w * kernel_num_second_layer)), dA3 + (j * out_h * out_w), dZ0 + (i * h_2 * w_2), out_h, out_w, padding_full_conv, stride_c, h_2);
                 }
             }
 
@@ -456,7 +454,7 @@ int main(){
             for(int i = 0; i < kernel_num_second_layer; i++){
                 matrix_dot_product<<<grid, block>>>(second_pool + (i * in_h * in_w), second_pool + (i * in_h * in_w), dP1, out_h, out_w);
                 scalar_subtraction<<<grid, block>>>(dP1 + (i * in_w * in_h), dP1 + (i * in_w * in_h), out_w, out_h);
-                matrix_dot_product<<<grid, block>>>(dP1, dA3, dP1, out_w, out_h);
+                matrix_dot_product<<<grid, block>>>(dP1 + (i * in_h * in_w), dA3 + (i * in_h * in_w), dP1 + (i * in_h * in_w), out_w, out_h);
             }
 
             /****
@@ -492,7 +490,7 @@ int main(){
             for(int i = 0; i < kernel_num_second_layer; i++){
                 matrix_dot_product<<<grid, block>>>(second_conv + (i * in_w * in_h), second_conv + (i * in_w * in_h), dC1, out_w, out_h);
                 scalar_subtraction<<<grid, block>>>(dC1 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
-                matrix_dot_product<<<grid, block>>>(dC1, dA2, dC1, out_w, out_h);
+                matrix_dot_product<<<grid, block>>>(dC1 + (i * in_h * in_w), dA2 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
             }
 
             /****
@@ -508,13 +506,13 @@ int main(){
             h_2 = 10;
             w_2 = 10;
             padding_full_conv = h_2 - 1;
-            out_h = (in_h + 2 * padding - h_2) / stride_c + 1;
-            out_w = (in_w + 2 * padding - w_2) / stride_c + 1;
+            out_h = (in_h + 2 * padding_full_conv - h_2) / stride_c + 1;
+            out_w = (in_w + 2 * padding_full_conv - w_2) / stride_c + 1;
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_second_layer; i++){
                 for(int j = 0; j < kernel_num_first_layer; j++){
-                    convolution3D<<<grid, block>>>(kernels_second_layer_dev + (j * in_h * in_w + (i * in_h * in_w * kernel_num_first_layer)), dA1 + (j * out_h * out_w), dZ0 + (i * h_2 * w_2), out_h, out_w, padding_full_conv, stride_c);
+                    convolution3D<<<grid, block>>>(kernels_second_layer_dev + (j * in_h * in_w + (i * in_h * in_w * kernel_num_first_layer)), dA1 + (j * out_h * out_w), dC1 + (i * h_2 * w_2), out_h, out_w, padding_full_conv, stride_c, h_2);
                 }
             }
 
@@ -536,7 +534,7 @@ int main(){
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_second_layer; i++){
                 for(int j = 0; j < kernel_num_first_layer; j++){
-                    convolution3D<<<grid, block>>>(first_pool + (j * in_h * in_w), dF1 + (j * out_h * out_w + (i * out_h * out_w * kernel_num_second_layer)), dC1 + (i * h_2 * w_2), out_w, out_h, padding, stride_c);
+                    convolution3D<<<grid, block>>>(first_pool + (j * in_h * in_w), dF1 + (j * out_h * out_w + (i * out_h * out_w * kernel_num_first_layer)), dC1 + (i * h_2 * w_2), out_w, out_h, padding, stride_c, h_2);
                 }
             }
 
@@ -556,7 +554,7 @@ int main(){
             for(int i = 0; i < kernel_num_first_layer; i++){
                 matrix_dot_product<<<grid, block>>>(first_pool + (i * in_h * in_w), first_pool + (i * in_h * in_w), dP0, out_w, out_h);
                 scalar_subtraction<<<grid, block>>>(dP0 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
-                matrix_dot_product<<<grid, block>>>(dP0, dA1, dP0, out_w, out_h);
+                matrix_dot_product<<<grid, block>>>(dP0 + (i * in_h * in_w), dA1 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
             }
 
             /****
@@ -592,7 +590,7 @@ int main(){
             for(int i = 0; i < kernel_num_first_layer; i++){
                 matrix_dot_product<<<grid, block>>>(first_conv + (i * in_w * in_h), first_conv + (i * in_w * in_h), dC0, out_w, out_h);
                 scalar_subtraction<<<grid, block>>>(dC0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
-                matrix_dot_product<<<grid, block>>>(dC0, dA0, dC0, out_w, out_h);
+                matrix_dot_product<<<grid, block>>>(dC0 + (i * in_w * in_h), dA0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
             }
 
             /****
@@ -612,8 +610,10 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_first_layer; i++){
-                convolution3D<<<grid, block>>>(img_dev, dF0 + (i * out_w * out_h), dC0 + (i * w_2 * h_2), out_w, out_h, padding, stride_c);
+                convolution3D<<<grid, block>>>(img_dev, dF0 + (i * out_w * out_h * kernel_num_first_layer), dC0 + (i * w_2 * h_2), out_w, out_h, padding, stride_c, h_2);
             }
+
+            //debug_print(dF0, 5, 5, 6, 1);
         }
 
         /*-------------------------------

@@ -166,7 +166,7 @@ int main(){
      * Inizio del ciclo per fare apprendimento. L'indice da usare è il numero di epoche
      * per le quali si vuole addestrare la rete.
     */
-    for(int epoch = 0; epoch < 2; epoch++){
+    for(int epoch = 0; epoch < 4; epoch++){
         for(int batch_dim = 0; batch_dim < 1; batch_dim++){
 
             /****
@@ -215,13 +215,15 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             // Prima di calcolare i nuovi valori ripuliamo la matrice second_conv perché la convolutin3D sovrascrive i valori già presenti inmemoria.
-            clean_vector<<<((out_h * out_w * kernel_num_second_layer) / 1024), 1024>>>(second_conv, out_h * out_w * kernel_num_second_layer);
+            clean_vector<<<((out_h * out_w * kernel_num_second_layer) / 1024 + 1), 1024>>>(second_conv, out_h * out_w * kernel_num_second_layer);
             for(int i = 0; i < kernel_num_second_layer; i++){
                 for(int j = 0; j < kernel_num_first_layer; j++){
                     convolution3D<<<grid, block>>>(first_pool + (j * in_h * in_w), second_conv + (i * out_h * out_w), kernels_second_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer)), out_h, out_w, padding, stride_c, KERNEL_DIM);
                 }
                 tanh<<<grid, block>>>(second_conv + (i * out_h * out_w), out_w, out_h, 0);
             }
+
+            //debug_print(kernels_second_layer_dev, 5, 5, 6, 1);
 
             /****
              * Calcoliamo il secondo layer di Average Pooling partendo da una matrice di dimensini (10 x 10 x 16)
@@ -310,6 +312,10 @@ int main(){
 
             // Inizio della BackPropagation
 
+
+
+
+
             // TODO: CONTROLLARE LA CORRETTEZZA DEL CALCOLO CHE VA DAL VALORE DELLA LOSS A DZ2
             cudaMemcpy(prediction_dev, prediction, sizeof(float) * fc_third_dim, cudaMemcpyHostToDevice);
             cudaMemcpy(target_dev, target, sizeof(float) * fc_third_dim, cudaMemcpyHostToDevice);
@@ -319,6 +325,9 @@ int main(){
             grid = {(unsigned int)(block.x / 1024 + 1)};
             subtraction<<<grid, block>>>(dZ2, prediction_dev, target_dev, fc_third_dim);
             // FINE CONTROLLO
+
+
+            //debug_print(dZ2, 1, 10, 1, 1);
 
 
             /****
@@ -409,6 +418,7 @@ int main(){
             out_w = KERNEL_DIM;
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+            clean_vector<<<(5 * 5 * 16 * 120 / 1024 + 1), 1024>>>(dF2, 5 * 5 * 16 * 120); // 5 * 5 * 16 * 120 = 48000 -> dimensione dei kernel tra il secondo e il terso layer convolutivo, di cui ne abbiamo 120 
             for(int i = 0; i < kernel_num_third_layer; i++){
                 for(int j = 0; j < kernel_num_second_layer; j++){
                     convolution3D<<<grid, block>>>(second_pool + (j * in_h * in_w), dF2 + (j * out_w * out_h + (i * out_w * out_h * kernel_num_second_layer)), dZ0 + (i * h_2 * w_2), KERNEL_DIM, KERNEL_DIM, padding, stride_c, h_2);
@@ -432,6 +442,7 @@ int main(){
             out_w = (in_w + 2 * padding_full_conv - w_2) / stride_c + 1;
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+            clean_vector<<<1, 400>>>(dA3, 5 * 5 * 16); //5 * 5 * 16 = 400
             for(int i = 0; i < kernel_num_third_layer; i++){
                 for(int j = 0; j < kernel_num_second_layer; j++){
                     convolution3D<<<grid, block>>>(kernels_third_layer_dev + (j * in_h * in_w + (i * in_h * in_w * kernel_num_second_layer)), dA3 + (j * out_h * out_w), dZ0 + (i * h_2 * w_2), out_h, out_w, padding_full_conv, stride_c, h_2);
@@ -510,6 +521,7 @@ int main(){
             out_w = (in_w + 2 * padding_full_conv - w_2) / stride_c + 1;
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+            clean_vector<<<2, 1024>>>(dA1, 14 * 14 * 6);// 14 * 14 * 6 = 1176, servono due blocchi, provare ad usarne due da 600 invece che da 1024.
             for(int i = 0; i < kernel_num_second_layer; i++){
                 for(int j = 0; j < kernel_num_first_layer; j++){
                     convolution3D<<<grid, block>>>(kernels_second_layer_dev + (j * in_h * in_w + (i * in_h * in_w * kernel_num_first_layer)), dA1 + (j * out_h * out_w), dC1 + (i * h_2 * w_2), out_h, out_w, padding_full_conv, stride_c, h_2);
@@ -532,6 +544,7 @@ int main(){
             out_w = KERNEL_DIM;
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+            clean_vector<<<3, 1024>>>(dF1, 5 * 5 * 6 * 16);// 5 * 5 * 6 * 16 = 2400, servono tre blocchi, provare ad usarne tre da 800 invece che da 1024.
             for(int i = 0; i < kernel_num_second_layer; i++){
                 for(int j = 0; j < kernel_num_first_layer; j++){
                     convolution3D<<<grid, block>>>(first_pool + (j * in_h * in_w), dF1 + (j * out_h * out_w + (i * out_h * out_w * kernel_num_first_layer)), dC1 + (i * h_2 * w_2), out_w, out_h, padding, stride_c, h_2);
@@ -609,12 +622,13 @@ int main(){
             out_w = KERNEL_DIM;
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+            clean_vector<<<1, 150>>>(dF0, 5 * 5 * 6);
             for(int i = 0; i < kernel_num_first_layer; i++){
                 convolution3D<<<grid, block>>>(img_dev, dF0 + (i * out_w * out_h * kernel_num_first_layer), dC0 + (i * w_2 * h_2), out_w, out_h, padding, stride_c, h_2);
             }
-
-            //debug_print(dF0, 5, 5, 6, 1);
         }
+
+        debug_print(dF1, 5, 5, 6, 1);
 
         /*-------------------------------
             Fine calcolo delle derivate.

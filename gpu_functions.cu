@@ -99,20 +99,29 @@ __global__ void inverse_avg_pooling(float *in, float *out, float *m, int w_in, i
 
         int i, j;
 
-        float tot = 0;
+        float tot = 0.0;
 
         int new_idx = idx * stride;
         int new_idy = idy * stride;
 
         for(i = 0; i < POOLING_WINDOW_SIZE; i++){
             for(j = 0; j < POOLING_WINDOW_SIZE; j++){
-                tot += ((new_idy + i) >= new_h || (new_idx + j) >= new_w) ? 0 : m[(new_idy + i) * new_w + new_idx + j];
+                tot += ((new_idy + i) >= new_h || (new_idx + j) >= new_w) ? 0.0 : m[(new_idy + i) * new_w + new_idx + j];
             }
         }
 
-        for(i = 0; i < POOLING_WINDOW_SIZE; i++){
-            for(j = 0; j < POOLING_WINDOW_SIZE; j++){
-                out[(new_idy + i) * new_w + new_idx + j] = m[(new_idy + i) * new_w + new_idx + j] / tot * in[idy * w_in + idx];
+        if(tot == 0.0){
+            for(i = 0; i < POOLING_WINDOW_SIZE; i++){
+                for(j = 0; j < POOLING_WINDOW_SIZE; j++){
+                    out[(new_idy + i) * new_w + new_idx + j] = 0.0;
+                }
+            }
+        }
+        else {
+            for(i = 0; i < POOLING_WINDOW_SIZE; i++){
+                for(j = 0; j < POOLING_WINDOW_SIZE; j++){
+                    out[(new_idy + i) * new_w + new_idx + j] = m[(new_idy + i) * new_w + new_idx + j] / tot * in[idy * w_in + idx];
+                }
             }
         }
 

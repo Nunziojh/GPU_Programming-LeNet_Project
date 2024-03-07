@@ -8,6 +8,7 @@
 #define h_m 4
 #define w_m 4
 #define stride 2
+#define POOLING_WINDOW_SIZE 2
 
 __global__ void max_pooling(int *in, int *out, int new_h, int new_w){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
@@ -55,7 +56,7 @@ __global__ void avg_pooling(int *in, float *out, int new_h, int new_w){
     }
 }
 
-__global__ void inverse_avg_pooling(float *in, float *out, float *m, int w_in, int h_in, int new_w, int new_h, int stride_c){
+__global__ void inverse_avg_pooling(float *in, float *out, float *m, int w_in, int h_in, int new_w, int new_h){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
@@ -65,24 +66,26 @@ __global__ void inverse_avg_pooling(float *in, float *out, float *m, int w_in, i
 
         float tot = 0;
 
-        int new_idx = idx * stride_c;
-        int new_idy = idy * stride_c;
+        int new_idx = idx * stride;
+        int new_idy = idy * stride;
 
-        for(i = 0; i < 2; i++){
-            for(j = 0; j < 2; j++){
+        printf("(%d, %d) -> %f\n", idx, idy, in[idx + idy * w_in]);
+        printf("\t%f, %f, %f, %f\n", m[new_idx + new_idy * new_w], m[new_idx + new_idy * new_w + 1], m[new_idx + (new_idy + 1) * new_w], m[new_idx + (new_idy + 1) * new_w + 1]);
+
+        for(i = 0; i < POOLING_WINDOW_SIZE; i++){
+            for(j = 0; j < POOLING_WINDOW_SIZE; j++){
                 tot += ((new_idy + i) >= new_h || (new_idx + j) >= new_w) ? 0 : m[(new_idy + i) * new_w + new_idx + j];
             }
         }
 
-        for(i = 0; i < 2; i++){
-            for(j = 0; j < 2; j++){
+        for(i = 0; i < POOLING_WINDOW_SIZE; i++){
+            for(j = 0; j < POOLING_WINDOW_SIZE; j++){
                 out[(new_idy + i) * new_w + new_idx + j] = m[(new_idy + i) * new_w + new_idx + j] / tot * in[idy * w_in + idx];
             }
         }
 
     }
 }
-
 int main(int argc, char **argv){
 /*
     int *host_input = (int *)malloc(sizeof(int) * h_m * w_m);
@@ -145,7 +148,7 @@ int main(int argc, char **argv){
     cudaMemcpy(dev_kernel, host_kernel, sizeof(float) * h_m * w_m / 4, cudaMemcpyHostToDevice);
     cudaMemcpy(dev_input, host_input, sizeof(float) * h_m * w_m, cudaMemcpyHostToDevice);
 
-    inverse_avg_pooling<<<1, {w_m / 2, h_m / 2}>>>(dev_kernel, dev_out, dev_input, h_m / 2, w_m / 2, h_m, w_m, 2);
+    inverse_avg_pooling<<<{1, 1}, {10, 10}>>>(dev_kernel, dev_out, dev_input, h_m / 2, w_m / 2, h_m, w_m);
 
     cudaMemcpy(host_output, dev_out, sizeof(float) * h_m * w_m, cudaMemcpyDeviceToHost);
 

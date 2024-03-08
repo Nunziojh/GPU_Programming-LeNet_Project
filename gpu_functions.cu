@@ -193,13 +193,30 @@ __global__ void matrix_scalar_product(float *io, float scalar, int w, int h, int
     }
 }
 
+__global__ void matrix3D_scalar_product(float *io, float scalar, int w, int h, int stampa){
+    int c = blockIdx.x;
+    int idx = threadIdx.x;
+    int idy = threadIdx.y;
+
+    if(idx < w && idy < h){
+        io = io + (c * w * h);
+        io[idy * w + idx] = io[idy * w + idx] * scalar;
+        if(stampa == 1) printf("\t(%d, %d) %e\n", idy, idx, io[idy * w + idx]);
+    }
+}
+
 __global__ void tanh(float *in, int w, int h, int stampa){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
     if(idx < w && idy < h){
+        float val = in[idy * w + idx];
+        float p = exp(val);
+        float m = exp(-val);
 
-        in[idy * w + idx] = 1.0 / (1.0 + exp(in[idy * w + idx]));
+        in[idy * w + idx] = (p - m) / (p + m);
+
+        //in[idy * w + idx] = 1.0 / (1.0 + exp(in[idy * w + idx]));
         if(stampa == 1) printf("\t(%d, %d) %e\n", idy, idx, in[idy * w + idx]);
     }
 }
@@ -225,8 +242,22 @@ __global__ void scalar_subtraction(float *out, float *in, int w, int h){
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
     if(idx < w && idy < h){
+        
         int index = idy * w + idx;
         out[index] = 1 - in[index];
+    }
+}
+
+__global__ void subtraction_scalar_parametric(float *io, float scalar, int w, int h){
+    int c = blockIdx.x;
+
+    int idx = threadIdx.x;
+    int idy = threadIdx.y;
+
+    if(idx < w && idy < h){
+        io = io + (c * w * h);
+        int index = idy * w + idx;
+        io[index] = io[index] - scalar;
     }
 }
 

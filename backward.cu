@@ -3,6 +3,7 @@
 #include <time.h>
 #include <cuda_runtime.h>
 #include <cuda.h>
+#include <float.h>
 
 #include "gpu_functions.h"
 //#include "mnist.h"
@@ -27,6 +28,35 @@ __host__ void debug_print(float *matrice_dev, int w, int h, int c, int n){
 
     free(tmp);
     return;
+}
+
+__host__ void mean_max_min(float *matrix, float *mean, float *max, float *min, int w, int h, int c){
+    float tmp;
+    float sum = 0;
+    for(int i = 0; i < c; i++){
+        for(int j = 0; j < h; j++){
+            for(int k = 0; k < w; k++){
+                tmp = matrix[k + j * w + i * h * w];
+                if(tmp < *min) *min = tmp;
+                if(tmp > *max) *max = tmp;
+                sum += tmp;
+            }
+        }
+    }
+    *mean = sum / (float)(w * h * c);
+}
+
+__host__ void mean_normalization(float *matrix_dev, int w, int h, int c){
+    float mean = 0;
+    float max = -FLT_MAX, min = FLT_MAX;
+    float *matrix_host = (float *)malloc(sizeof(float) * w * h * c);
+    cudaMemcpy(matrix_host, matrix_dev, sizeof(float) * w * h * c, cudaMemcpyDeviceToHost);
+    mean_max_min(matrix_host, &mean, &max, &min, w, h, c);
+    //printf("\t\t%e, %e, %e\n");
+    dim3 block{(unsigned int)w, (unsigned int)h};
+    subtraction_scalar_parametric<<<c, block>>>(matrix_dev, mean, w, h);
+    matrix3D_scalar_product<<<c, block>>>(matrix_dev, (2.0 / (float)(max - min)), w, h, 0);
+    free(matrix_host);
 }
 
 int main(){
@@ -159,8 +189,7 @@ int main(){
         presenza della funzione tanh che riporta tutti i valori nell'intervallo [-1, 1].
         Per ora questa prima normalizzazione non sottrae la media ma divide solo per la deiazione standard.    
     */
-    matrix_scalar_product<<<{1, 1}, {32, 32}>>>(img_dev, (float)(1.0 / (float)(1024)), 32, 32, 0);
-
+    mean_normalization(img_dev, in_w, in_h, 1);
 
     /****
      * Inizio del ciclo per fare apprendimento. L'indice da usare è il numero di epoche
@@ -183,8 +212,13 @@ int main(){
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             for(int i = 0; i < kernel_num_first_layer; i++){
                 convolution<<<grid, block>>>(img_dev, first_conv + (i * out_h * out_w), kernels_first_layer_dev + (i * KERNEL_DIM * KERNEL_DIM), out_w, out_h, padding, stride_c);
+            }
+            mean_normalization(first_conv, out_w, out_h, kernel_num_first_layer);
+            for(int i = 0; i < kernel_num_first_layer; i++){
                 tanh<<<grid, block>>>(first_conv + (i * out_h * out_w), out_w, out_h, 0);
             }
+
+            //debug_print(first_conv, out_w, out_h, 6, 1);
 
             /****
              * Calcoliamo il primo layer di Average Pooling con la relativa funzione di attivazione tanh.
@@ -203,6 +237,8 @@ int main(){
                 tanh<<<grid, block>>>(first_pool + (i * out_h * out_w), out_w, out_h, 0);
             }
 
+            //debug_print(first_pool, out_w, out_h, 6, 1);
+
             /****
              * Calcoliamo il secondo layer convolutivo a partire dall'uscita del layer di pooling precedente,
              * le dimensioni di ingresso sono (14 x 14 x 6), usiamo 16 kernel di dimensioni (5 x 5) e otteniamo
@@ -220,10 +256,13 @@ int main(){
                 for(int j = 0; j < kernel_num_first_layer; j++){
                     convolution3D<<<grid, block>>>(first_pool + (j * in_h * in_w), second_conv + (i * out_h * out_w), kernels_second_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer)), out_h, out_w, padding, stride_c, KERNEL_DIM);
                 }
+            }
+            mean_normalization(second_conv, out_w, out_h, kernel_num_second_layer);
+            for(int i = 0; i < kernel_num_second_layer; i++){
                 tanh<<<grid, block>>>(second_conv + (i * out_h * out_w), out_w, out_h, 0);
             }
 
-            //debug_print(kernels_second_layer_dev, 5, 5, 6, 1);
+            //debug_print(second_conv, out_w, out_h, 16, 1);
 
             /****
              * Calcoliamo il secondo layer di Average Pooling partendo da una matrice di dimensini (10 x 10 x 16)
@@ -239,6 +278,8 @@ int main(){
                 avg_pooling<<<grid, block>>>(second_conv + (i * in_h * in_w), second_pool + (i * out_h * out_w), in_h, in_w, out_h, out_w, stride_p);
                 tanh<<<grid, block>>>(second_pool + (i * out_h * out_w), out_w, out_h, 0);
             }
+
+            //debug_print(second_pool, out_w, out_h, 16, 1);
 
             /****
              * Calcoliamo il terzo layer convolutivo a partire dall'uscita del layer di pooling precedente,
@@ -259,6 +300,8 @@ int main(){
                 }
                 tanh<<<grid, block>>>(third_conv + (i * out_h * out_w), out_w, out_h, 0);
             }
+
+            //debug_print(third_conv, out_w, out_h, 120, 1);
 
             /****
              * A partire dalla matrice di dimensini (120 x m) ottenuta dall'ultimo layer convolutivo, calcoliamo il primo
@@ -628,7 +671,7 @@ int main(){
             }
         }
 
-        debug_print(dF1, 5, 5, 6, 1);
+        //debug_print(dF0, 5, 5, 6, 1);
 
         /*-------------------------------
             Fine calcolo delle derivate.

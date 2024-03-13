@@ -211,8 +211,8 @@ __global__ void tanh(float *in, int w, int h, int stampa){
 
     if(idx < w && idy < h){
         float val = in[idy * w + idx];
-        float p = exp(val);
-        float m = exp(-val);
+        float p = expf(val);
+        float m = expf(-val);
 
         in[idy * w + idx] = (p - m) / (p + m);
 
@@ -225,7 +225,7 @@ __global__ void exponential(float *in, int len){
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(idx < len){
-        in[idx] = exp(in[idx]);
+        in[idx] = expf(in[idx]);
     }
 }
 
@@ -253,6 +253,8 @@ __global__ void subtraction_scalar_parametric(float *io, float scalar, int w, in
 
     int idx = threadIdx.x;
     int idy = threadIdx.y;
+
+
 
     if(idx < w && idy < h){
         io = io + (c * w * h);

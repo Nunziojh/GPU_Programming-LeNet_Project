@@ -4,9 +4,13 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <float.h>
+#include <string.h>
 
 #include "gpu_functions.h"
-//#include "mnist.h"
+
+#define USE_MNIST_LOADER
+#define MNIST_DOUBLE
+#include "mnist.h"
 
 
 __host__ void debug_print(float *matrice_dev, int w, int h, int c, int n){
@@ -52,11 +56,72 @@ __host__ void mean_normalization(float *matrix_dev, int w, int h, int c){
     float *matrix_host = (float *)malloc(sizeof(float) * w * h * c);
     cudaMemcpy(matrix_host, matrix_dev, sizeof(float) * w * h * c, cudaMemcpyDeviceToHost);
     mean_max_min(matrix_host, &mean, &max, &min, w, h, c);
-    //printf("\t\t%e, %e, %e\n");
+    //printf("\t\t\t\t\t%e, %e, %e\n", mean, max, min);
     dim3 block{(unsigned int)w, (unsigned int)h};
     subtraction_scalar_parametric<<<c, block>>>(matrix_dev, mean, w, h);
-    matrix3D_scalar_product<<<c, block>>>(matrix_dev, (2.0 / (float)(max - min)), w, h, 0);
+    matrix3D_scalar_product<<<c, block>>>(matrix_dev, (2.0 / (max - min)), w, h, 0);
     free(matrix_host);
+}
+
+__host__ void save_img(char *name, float *image){
+    char file_name[100];
+    FILE *fp;
+    int x, y;
+
+    if (name[0] == '\0') {
+        printf("output file name (*.pgm) : ");
+        scanf("%s", file_name);
+    } else strcpy(file_name, name);
+
+    if ( (fp=fopen(file_name, "wb"))==NULL ) {
+        printf("could not open file\n");
+        exit(1);
+    }
+
+    int i;
+    fputs("P5\n", fp);
+    fputs("# Created by Image Processing\n", fp);
+    fprintf(fp, "%d %d\n", 32, 32);
+    fprintf(fp, "%d\n", 255);
+    for (y=0; y<32; y++){
+        for (x=0; x<32; x++){
+            i = image[y * 32 + x] * 255;
+            fputc(i, fp);
+        }
+    }
+    fclose(fp);
+    printf("Image was saved successfully\n");
+}
+
+__host__ void load_example_to_device(mnist_data data, float *img_dev, float *target, char *name){
+    float *tmp = (float *)malloc(sizeof(float) * 32 * 32);
+
+    for(int i = 0; i < 32; i++){
+        for(int j = 0; j < 32; j++){
+            if(i < 2 || i > 29 || j < 2 || j > 29){
+                tmp[i * 32 + j] = 0;
+            }
+            else{
+                tmp[i * 32 + j] = (float)(data.data[i - 2][j - 2]);
+            }
+        }
+    }
+
+    // for(int i = 0; i < 32; i++){
+    //     for(int j = 0; j < 32; j++){
+    //         printf("%f ", tmp[i * 32 + j]);
+    //     }
+    //     printf("\n");
+    // }
+    //save_img(name, tmp);
+
+    //printf("label: %d\n", data.label);
+
+    for(int i = 0; i < 10; i++) target[i] = 0;
+    target[data.label] = 1;
+    cudaMemcpy(img_dev, tmp, sizeof(float) * 32 * 32, cudaMemcpyHostToDevice);
+
+    free(tmp);
 }
 
 int main(){
@@ -107,10 +172,24 @@ int main(){
     /***
      * Definizione e allocazione delle matrici e dei target in ingresso.
     */
-    float target[10] = {0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
-    float *img = (float *) malloc(sizeof(float) * in_h * in_w);
+    mnist_data *data;
+    float target[10];
+    unsigned int counter = 0;
+    int ret;
+
+    if(ret = mnist_load("./MNIST_Dataset/train-images.idx3-ubyte", "./MNIST_Dataset/train-labels.idx1-ubyte", &data, &counter)){
+        printf("Errore: %d\n", ret);
+        exit(1);
+    }
+    else{
+        printf("Immagini lette: %d\n", counter);
+    }
+
+    //float target[10] = {0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+    //float *img = (float *) malloc(sizeof(float) * in_h * in_w);
     // TODO: Aggiungere il padding all'immagine di ingresso (28 x 28) -> (32 x 32)
-    for(int i = 0; i < in_w * in_w; i++) img[i] = i;
+    //for(int i = 0; i < in_w * in_w; i++) img[i] = i;
+
 
     /***
      * Definizione e allocazione dei kernel e delle matrici su device.
@@ -180,7 +259,7 @@ int main(){
     cudaMemcpy(kernels_third_layer_dev, kernels_third_layer, sizeof(float) * KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer * kernel_num_third_layer, cudaMemcpyHostToDevice);
     cudaMemcpy(fc_first_layer_dev, fc_first_layer, sizeof(float) * fc_first_dim * fc_second_dim, cudaMemcpyHostToDevice);
     cudaMemcpy(fc_second_layer_dev, fc_second_layer, sizeof(float) * fc_second_dim * fc_third_dim, cudaMemcpyHostToDevice);
-    cudaMemcpy(img_dev, img, sizeof(float) * in_w * in_h, cudaMemcpyHostToDevice);
+    //cudaMemcpy(img_dev, img, sizeof(float) * in_w * in_h, cudaMemcpyHostToDevice);
 
     /*----------------------------------------------------------------------------------------------------------------------------
         La successiva riga di codice serve a normalizzare i valori nell'intervallo [0, 1] così che la prima
@@ -189,13 +268,22 @@ int main(){
         presenza della funzione tanh che riporta tutti i valori nell'intervallo [-1, 1].
         Per ora questa prima normalizzazione non sottrae la media ma divide solo per la deiazione standard.    
     */
-    mean_normalization(img_dev, in_w, in_h, 1);
+    //mean_normalization(img_dev, in_w, in_h, 1);
+
+    FILE *file_p;
+    if((file_p = fopen("loss_plot.txt", "w")) == NULL){
+        printf("File non torvato\n");
+        exit(1);
+    }
 
     /****
      * Inizio del ciclo per fare apprendimento. L'indice da usare è il numero di epoche
      * per le quali si vuole addestrare la rete.
     */
-    for(int epoch = 0; epoch < 4; epoch++){
+    char name[100];
+    for(int epoch = 0; epoch < 10000; epoch++){
+        sprintf(name, "epoch_%d.pgm", epoch);
+        load_example_to_device(data[epoch], img_dev, target, name);
         for(int batch_dim = 0; batch_dim < 1; batch_dim++){
 
             /****
@@ -214,6 +302,8 @@ int main(){
                 convolution<<<grid, block>>>(img_dev, first_conv + (i * out_h * out_w), kernels_first_layer_dev + (i * KERNEL_DIM * KERNEL_DIM), out_w, out_h, padding, stride_c);
             }
             mean_normalization(first_conv, out_w, out_h, kernel_num_first_layer);
+            //debug_print(first_conv, out_w, out_h, 6, 1);
+
             for(int i = 0; i < kernel_num_first_layer; i++){
                 tanh<<<grid, block>>>(first_conv + (i * out_h * out_w), out_w, out_h, 0);
             }
@@ -298,6 +388,9 @@ int main(){
                 for(int j = 0; j < kernel_num_second_layer; j++){
                     convolution3D<<<grid, block>>>(second_pool + (j * in_h * in_w), third_conv + (i * out_h * out_w), kernels_third_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer)), out_h, out_w, padding, stride_c, KERNEL_DIM);
                 }
+            }
+            mean_normalization(third_conv, out_w, out_h, kernel_num_third_layer);
+            for(int i = 0; i < kernel_num_third_layer; i++){
                 tanh<<<grid, block>>>(third_conv + (i * out_h * out_w), out_w, out_h, 0);
             }
 
@@ -317,6 +410,8 @@ int main(){
             matrix_product<<<grid, block>>>(fc_first_layer_dev, third_conv, second_fc, m, fc_second_dim, fc_first_dim);
             tanh<<<grid, block>>>(second_fc, 1, fc_second_dim, 0);
 
+            //debug_print(second_fc, 1, 84, 1, 1);
+
             /****
              * A partire dalla matrice di dimensini (84 x m) ottenuta al livello FC precedente, calcoliamo il secondo
              * livello di Fully Connected usando come matrice di pesi la variabile 'fc_second_layer_dev' di dimensioni
@@ -329,19 +424,24 @@ int main(){
             block = {(unsigned int)m, (unsigned int)fc_third_dim};
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             matrix_product<<<grid, block>>>(fc_second_layer_dev, second_fc, third_fc, m, fc_third_dim, fc_second_dim);
+            //mean_normalization(third_fc, 1, 10, 1);
+
+            //debug_print(third_fc, 1, 10, 1, 1);
 
             /****
              * Calcoliamo la funzione di Loss calcolando prima gli esponenziali sul dispositivo e poi portiamo i valori
              * sull'host per poter terminare il calcolo della Softmax facendo la sommatoria di tutti i valori ottenuti
              * per poi dividere ogni elemento del vettore per il valore calcolato.
             */
-            exponential<<<grid, block>>>(third_fc, fc_third_dim);
+            exponential<<<1, fc_third_dim>>>(third_fc, fc_third_dim);
             cudaMemcpy(prediction, third_fc, sizeof(float) * fc_third_dim, cudaMemcpyDeviceToHost);
+            //debug_print(third_fc, 1, 10, 1, 1);
             summation = 0.0;
             for(int i = 0; i < fc_third_dim; i++) summation += prediction[i];
             for(int i = 0; i < fc_third_dim; i++) {
                 prediction[i] = prediction[i] / summation;
-                printf("\t\t%f\n", prediction[i]);
+                //if(epoch % 20 == 0){printf("\t\t%f\n", prediction[i]);}
+                //printf("\t\t%f\n", prediction[i]);
             }
             //for(int i = 0; i < fc_third_dim; i++) printf("%2.2f\n", prediction[i]);
 
@@ -349,9 +449,18 @@ int main(){
              * Calcoliamo il valore della Loss.
             */
             loss = 0.0;
-            for(int i = 0; i < fc_third_dim; i++) loss += target[i] * log(prediction[i]);
+            //loss += target[i] * logf(prediction[i];
+            for(int i = 0; i < fc_third_dim; i++){
+                if(target)
+                    loss += target[i] * logf(prediction[i]);
+            }
             loss = -loss;
-            printf("Loss = %e\n", loss);
+            // if(epoch % 20 == 0){
+            //     printf("Loss = %e\n", loss);
+            // }
+            //printf("Loss = %e\n", loss);
+            fprintf(file_p, "%d %e\n", epoch, loss);
+
 
             // Inizio della BackPropagation
 
@@ -388,6 +497,8 @@ int main(){
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             matrix_product_transpose<<<grid, block>>>(dZ2, second_fc, dW2, out_w, out_h, in_w);
             matrix_scalar_product<<<grid, block>>>(dW2, (1.0 / m), out_w, out_h, 0);
+
+            //debug_print(dW2, 84, 10, 1, 1);
         
             /****
              * Calcoliamo la derivata delle uscite del secondo layer FC.
@@ -409,6 +520,8 @@ int main(){
             scalar_subtraction<<<grid, block>>>(gdZ1, gdZ1, out_w, out_h);
             matrix_dot_product<<<grid, block>>>(dZ1, gdZ1, dZ1, out_w, out_h);
 
+            //debug_print(dZ1, 1, 84, 1, 1);
+
             /****
              * Calcoliamo la derivata dei pesi tra il primo e il secondo livello FC.
              * dW1 = dZ1 * A0^T
@@ -424,6 +537,8 @@ int main(){
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             matrix_product_transpose<<<grid, block>>>(dZ1, third_conv, dW1, out_w, out_h, in_w);
             matrix_scalar_product<<<grid, block>>>(dW1, (1.0 / m), out_w, out_h, 0);
+
+            //debug_print(dW1, 120, 84, 1, 1);
 
             /****
              * Calcoliamo la derivata delle uscite del secondo layer FC.
@@ -444,6 +559,8 @@ int main(){
             matrix_dot_product<<<grid, block>>>(third_conv, third_conv, gdZ0, out_w, out_h);
             scalar_subtraction<<<grid, block>>>(gdZ0, gdZ0, out_w, out_h);
             matrix_dot_product<<<grid, block>>>(dZ0, gdZ0, dZ0, out_w, out_h);
+
+            // debug_print(dZ0, 1, 120, 1, 1);
 
             /****
              * Calcoliamo la derivata del terzo gruppo di kernel che di dimensioni (5 x 5 x 16), di cui
@@ -467,6 +584,8 @@ int main(){
                     convolution3D<<<grid, block>>>(second_pool + (j * in_h * in_w), dF2 + (j * out_w * out_h + (i * out_w * out_h * kernel_num_second_layer)), dZ0 + (i * h_2 * w_2), KERNEL_DIM, KERNEL_DIM, padding, stride_c, h_2);
                 }
             }
+
+            // debug_print(dF2 + (5 * 5 * 16 * 119), 5, 5, 16, 1);
 
             /****
              * Cacoliamo la Full Convolution tra i kernel della terza convoluzione e dZ0 che è
@@ -492,6 +611,8 @@ int main(){
                 }
             }
 
+            // debug_print(dA3, 5, 5, 16, 1);
+
             /****
              * Calcoliamo la derivata delle uscite del secondo layer di Pooling.
              * Iteriamo su tutti canali singolarmente e per ognuno calcoliamo
@@ -506,10 +627,12 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_second_layer; i++){
-                matrix_dot_product<<<grid, block>>>(second_pool + (i * in_h * in_w), second_pool + (i * in_h * in_w), dP1, out_h, out_w);
+                matrix_dot_product<<<grid, block>>>(second_pool + (i * in_h * in_w), second_pool + (i * in_h * in_w), dP1 + (i * out_h * out_w), out_h, out_w);
                 scalar_subtraction<<<grid, block>>>(dP1 + (i * in_w * in_h), dP1 + (i * in_w * in_h), out_w, out_h);
                 matrix_dot_product<<<grid, block>>>(dP1 + (i * in_h * in_w), dA3 + (i * in_h * in_w), dP1 + (i * in_h * in_w), out_w, out_h);
             }
+
+            // debug_print(dP1, 5, 5, 16, 1);
 
             /****
              * Derivata rispetto all'uscita del secondo layer di Pooling.
@@ -528,6 +651,8 @@ int main(){
                 inverse_avg_pooling<<<grid, block>>>(dP1 + (i * in_h * in_w), dA2 + (i * out_h * out_w), second_conv + (i * out_h * out_w), in_w, in_h, out_w, out_h, stride_p);
             }
 
+            // debug_print(dA2, 10, 10, 16, 1);
+
             /****
              * Calcoliamo la derivata delle uscite del secondo layer di Convoluzione.
              * Iteriamo su tutti canali singolarmente e per ognuno calcoliamo
@@ -542,10 +667,12 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_second_layer; i++){
-                matrix_dot_product<<<grid, block>>>(second_conv + (i * in_w * in_h), second_conv + (i * in_w * in_h), dC1, out_w, out_h);
+                matrix_dot_product<<<grid, block>>>(second_conv + (i * in_w * in_h), second_conv + (i * in_w * in_h), dC1 + (i * out_h * out_w), out_w, out_h);
                 scalar_subtraction<<<grid, block>>>(dC1 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
                 matrix_dot_product<<<grid, block>>>(dC1 + (i * in_h * in_w), dA2 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
             }
+
+            // debug_print(dC1, 10, 10, 16, 1);
 
             /****
              * Cacoliamo la Full Convolution tra i kernel della seconda convoluzione, F1, e dC1 che è
@@ -571,6 +698,8 @@ int main(){
                 }
             }
 
+            // debug_print(dA1, 14, 14, 6, 1);
+
             /****
              * Calcoliamo la derivata del secondo gruppo di kernel di dimensioni (5 x 5 x 6), di cui
              * ne abbiamo 16.
@@ -594,6 +723,8 @@ int main(){
                 }
             }
 
+            // debug_print(dF1, 5, 5, 6, 1);
+
             /****
              * Calcoliamo la derivata delle uscite del secondo layer di Pooling.
              * Iteriamo su tutti canali singolarmente e per ognuno calcoliamo
@@ -608,10 +739,14 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_first_layer; i++){
-                matrix_dot_product<<<grid, block>>>(first_pool + (i * in_h * in_w), first_pool + (i * in_h * in_w), dP0, out_w, out_h);
+                matrix_dot_product<<<grid, block>>>(first_pool + (i * in_h * in_w), first_pool + (i * in_h * in_w), dP0 + (i * out_h * out_w), out_w, out_h);
                 scalar_subtraction<<<grid, block>>>(dP0 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
                 matrix_dot_product<<<grid, block>>>(dP0 + (i * in_h * in_w), dA1 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
             }
+
+            // debug_print(dA1, 14, 14, 6, 1);
+            // debug_print(first_pool, 14, 14, 6, 1);
+            // debug_print(dP0, 14, 14, 6, 1);
 
             /****
              * Derivata rispetto all'uscita del primo layer di Pooling.
@@ -644,7 +779,7 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_first_layer; i++){
-                matrix_dot_product<<<grid, block>>>(first_conv + (i * in_w * in_h), first_conv + (i * in_w * in_h), dC0, out_w, out_h);
+                matrix_dot_product<<<grid, block>>>(first_conv + (i * in_w * in_h), first_conv + (i * in_w * in_h), dC0 + (i * out_h * out_w), out_w, out_h);
                 scalar_subtraction<<<grid, block>>>(dC0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
                 matrix_dot_product<<<grid, block>>>(dC0 + (i * in_w * in_h), dA0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
             }
@@ -704,13 +839,16 @@ int main(){
 
     }
 
+    fclose(file_p);
+
     free(kernels_first_layer);
     free(kernels_second_layer);
     free(kernels_third_layer);
     free(fc_first_layer);
     free(fc_second_layer);
     free(prediction);
-    free(img);
+    
+    free(data);
 
     
 

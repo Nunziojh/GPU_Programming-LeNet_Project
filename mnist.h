@@ -1,196 +1,170 @@
+#ifndef __MNIST_H__
+#define __MNIST_H__
+
 /*
-Takafumi Hoiruchi. 2018.
-https://github.com/takafumihoriuchi/MNIST_for_C
-*/
+ * MNIST loader by Nuri Park - https://github.com/projectgalateia/mnist
+ */
+
+#ifdef USE_MNIST_LOADER /* Fundamental macro to make the code active */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ * Make mnist_load function static.
+ * Define when the header is included multiple time.
+ */
+#ifdef MNIST_STATIC
+#define _STATIC static
+#else
+#define _STATIC 
+#endif
+
+/*
+ * Make mnist loader to load image data as double type.
+ * It divides unsigned char values by 255.0, so the results ranges from 0.0 to 1.0
+ */
+#ifdef MNIST_DOUBLE
+#define MNIST_DATA_TYPE double
+#else
+#define MNIST_DATA_TYPE unsigned char
+#endif
+
+typedef struct mnist_data {
+	MNIST_DATA_TYPE data[28][28]; /* 28x28 data for the image */
+	unsigned int label; /* label : 0 to 9 */
+} mnist_data;
+
+/*
+ * If it's header inclusion, make only function prototype visible.
+ */
+#ifdef MNIST_HDR_ONLY
+
+_STATIC int mnist_load(
+	const char *image_filename,
+	const char *label_filename,
+	mnist_data **data,
+	unsigned int *count);
+
+#else
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <string.h>
 
-// set appropriate path for data
-#define TRAIN_IMAGE "./MNIST_Dataset/train-images.idx3-ubyte"
-#define TRAIN_LABEL "./MNIST_Dataset/train-labels.idx1-ubyte"
-#define TEST_IMAGE "./MNIST_Dataset/t10k-images.idx3-ubyte"
-#define TEST_LABEL "./MNIST_Dataset/t10k-labels.idx1-ubyte"
-
-#define SIZE 784 // 28*28
-#define NUM_TRAIN 60000
-#define NUM_TEST 10000
-#define LEN_INFO_IMAGE 4
-#define LEN_INFO_LABEL 2
-
-#define MAX_IMAGESIZE 1280
-#define MAX_BRIGHTNESS 255
-#define MAX_FILENAME 256
-#define MAX_NUM_OF_IMAGES 1
-
-unsigned char image[MAX_NUM_OF_IMAGES][MAX_IMAGESIZE][MAX_IMAGESIZE];
-int width[MAX_NUM_OF_IMAGES], height[MAX_NUM_OF_IMAGES];
-
-int info_image[LEN_INFO_IMAGE];
-int info_label[LEN_INFO_LABEL];
-
-unsigned char train_image_char[NUM_TRAIN][SIZE];
-unsigned char test_image_char[NUM_TEST][SIZE];
-unsigned char train_label_char[NUM_TRAIN][1];
-unsigned char test_label_char[NUM_TEST][1];
-
-double train_image[NUM_TRAIN][SIZE];
-double test_image[NUM_TEST][SIZE];
-int  train_label[NUM_TRAIN];
-int test_label[NUM_TEST];
-
-
-void FlipLong(unsigned char * ptr)
+/*
+ * Load a unsigned int from raw data.
+ * MSB first.
+ */
+static unsigned int mnist_bin_to_int(char *v)
 {
-    register unsigned char val;
-    
-    // Swap 1st and 4th bytes
-    val = *(ptr);
-    *(ptr) = *(ptr+3);
-    *(ptr+3) = val;
-    
-    // Swap 2nd and 3rd bytes
-    ptr += 1;
-    val = *(ptr);
-    *(ptr) = *(ptr+1);
-    *(ptr+1) = val;
+	int i;
+	unsigned int ret = 0;
+
+	for (i = 0; i < 4; ++i) {
+		ret <<= 8;
+		ret |= (unsigned char)v[i];
+	}
+
+	return ret;
 }
 
-
-void read_mnist_char(char *file_path, int num_data, int len_info, int arr_n, unsigned char data_char[][arr_n], int info_arr[])
+/*
+ * MNIST dataset loader.
+ *
+ * Returns 0 if successed.
+ * Check comments for the return codes.
+ */
+_STATIC int mnist_load(
+	const char *image_filename,
+	const char *label_filename,
+	mnist_data **data,
+	unsigned int *count)
 {
-    int i, j, k, fd;
-    unsigned char *ptr;
+	int return_code = 0;
+	int i;
+	char tmp[4];
 
-    if ((fd = open(file_path, O_RDONLY)) == -1) {
-        fprintf(stderr, "couldn't open image file");
-        exit(-1);
-    }
-    
-    read(fd, info_arr, len_info * sizeof(int));
-    
-    // read-in information about size of data
-    for (i=0; i<len_info; i++) { 
-        ptr = (unsigned char *)(info_arr + i);
-        FlipLong(ptr);
-        ptr = ptr + sizeof(int);
-    }
-    
-    // read-in mnist numbers (pixels|labels)
-    for (i=0; i<num_data; i++) {
-        read(fd, data_char[i], arr_n * sizeof(unsigned char));   
-    }
+	unsigned int image_cnt, label_cnt;
+	unsigned int image_dim[2];
 
-    close(fd);
+	FILE *ifp = fopen(image_filename, "rb");
+	FILE *lfp = fopen(label_filename, "rb");
+
+	if (!ifp || !lfp) {
+		return_code = -1; /* No such files */
+		goto cleanup;
+	}
+
+	fread(tmp, 1, 4, ifp);
+	if (mnist_bin_to_int(tmp) != 2051) {
+		return_code = -2; /* Not a valid image file */
+		goto cleanup;
+	}
+
+	fread(tmp, 1, 4, lfp);
+	if (mnist_bin_to_int(tmp) != 2049) {
+		return_code = -3; /* Not a valid label file */
+		goto cleanup;
+	}
+
+	fread(tmp, 1, 4, ifp);
+	image_cnt = mnist_bin_to_int(tmp);
+
+	fread(tmp, 1, 4, lfp);
+	label_cnt = mnist_bin_to_int(tmp);
+
+	if (image_cnt != label_cnt) {
+		return_code = -4; /* Element counts of 2 files mismatch */
+		goto cleanup;
+	}
+
+	for (i = 0; i < 2; ++i) {
+		fread(tmp, 1, 4, ifp);
+		image_dim[i] = mnist_bin_to_int(tmp);
+	}
+
+	if (image_dim[0] != 28 || image_dim[1] != 28) {
+		return_code = -2; /* Not a valid image file */
+		goto cleanup;
+	}
+
+	*count = image_cnt;
+	*data = (mnist_data *)malloc(sizeof(mnist_data) * image_cnt);
+
+	for (i = 0; i < image_cnt; ++i) {
+		int j;
+		unsigned char read_data[28 * 28];
+		mnist_data *d = &(*data)[i];
+
+		fread(read_data, 1, 28*28, ifp);
+
+#ifdef MNIST_DOUBLE
+		for (j = 0; j < 28*28; ++j) {
+			d->data[j/28][j%28] = read_data[j] / 255.0;
+		}
+#else
+		memcpy(d->data, read_data, 28*28);
+#endif
+
+		fread(tmp, 1, 1, lfp);
+		d->label = tmp[0];
+	}
+
+cleanup:
+	if (ifp) fclose(ifp);
+	if (lfp) fclose(lfp);
+
+	return return_code;
 }
 
+#endif /* MNIST_HDR_ONLY */
 
-void image_char2double(int num_data, unsigned char data_image_char[][SIZE], double data_image[][SIZE])
-{
-    int i, j;
-    for (i=0; i<num_data; i++)
-        for (j=0; j<SIZE; j++)
-            data_image[i][j]  = (double)data_image_char[i][j] / 255.0;
+#ifdef __cplusplus
 }
+#endif
 
+#endif /* USE_MNIST_LOADER */
+#endif /* __MNIST_H__ */
 
-void label_char2int(int num_data, unsigned char data_label_char[][1], int data_label[])
-{
-    int i;
-    for (i=0; i<num_data; i++)
-        data_label[i]  = (int)data_label_char[i][0];
-}
-
-
-void load_mnist()
-{
-    read_mnist_char(TRAIN_IMAGE, NUM_TRAIN, LEN_INFO_IMAGE, SIZE, train_image_char, info_image);
-    image_char2double(NUM_TRAIN, train_image_char, train_image);
-
-    read_mnist_char(TEST_IMAGE, NUM_TEST, LEN_INFO_IMAGE, SIZE, test_image_char, info_image);
-    image_char2double(NUM_TEST, test_image_char, test_image);
-    
-    read_mnist_char(TRAIN_LABEL, NUM_TRAIN, LEN_INFO_LABEL, 1, train_label_char, info_label);
-    label_char2int(NUM_TRAIN, train_label_char, train_label);
-    
-    read_mnist_char(TEST_LABEL, NUM_TEST, LEN_INFO_LABEL, 1, test_label_char, info_label);
-    label_char2int(NUM_TEST, test_label_char, test_label);
-}
-
-
-void print_mnist_pixel(double data_image[][SIZE], int num_data)
-{
-    int i, j;
-    for (i=0; i<num_data; i++) {
-        printf("image %d/%d\n", i+1, num_data);
-        for (j=0; j<SIZE; j++) {
-            printf("%1.1f ", data_image[i][j]);
-            if ((j+1) % 28 == 0) putchar('\n');
-        }
-        putchar('\n');
-    }
-}
-
-
-void print_mnist_label(int data_label[], int num_data)
-{
-    int i;
-    if (num_data == NUM_TRAIN)
-        for (i=0; i<num_data; i++)
-            printf("train_label[%d]: %d\n", i, train_label[i]);
-    else
-        for (i=0; i<num_data; i++)
-            printf("test_label[%d]: %d\n", i, test_label[i]);
-}
-
-
-// name: path for saving image (ex: "./images/sample.pgm")
-void save_image(int n, char name[])
-{
-    char file_name[MAX_FILENAME];
-    FILE *fp;
-    int x, y;
-
-    if (name[0] == '\0') {
-        printf("output file name (*.pgm) : ");
-        scanf("%s", file_name);
-    } else strcpy(file_name, name);
-
-    if ( (fp=fopen(file_name, "wb"))==NULL ) {
-        printf("could not open file\n");
-        exit(1);
-    }
-
-    fputs("P5\n", fp);
-    fputs("# Created by Image Processing\n", fp);
-    fprintf(fp, "%d %d\n", width[n], height[n]);
-    fprintf(fp, "%d\n", MAX_BRIGHTNESS);
-    for (y=0; y<height[n]; y++)
-        for (x=0; x<width[n]; x++)
-            fputc(image[n][x][y], fp);
-        fclose(fp);
-        printf("Image was saved successfully\n");
-}
-
-
-// save mnist image (call for each image)
-// store train_image[][] into image[][][]
-void save_mnist_pgm(double data_image[][SIZE], int index)
-{
-    int n = 0; // id for image (set to 0)
-    int x, y;
-
-    width[n] = 28;
-    height[n] = 28;
-
-    for (y=0; y<height[n]; y++) {
-        for (x=0; x<width[n]; x++) {
-            image[n][x][y] = data_image[index][y * width[n] + x] * 255.0;
-        }
-    }
-
-    save_image(n, "");
-}

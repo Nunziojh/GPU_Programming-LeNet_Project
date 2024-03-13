@@ -6,7 +6,7 @@
 #define KERNEL_DIM 5
 #define KERNEL_NUM 22
 #define POOLING_WINDOW_SIZE 2
-#define LEARNING_RATE 0.5
+#define LEARNING_RATE 0.005
 
 
 __global__ void convolution(float *in, float *out, float *kernel, int new_h, int new_w, int padding, int stride);

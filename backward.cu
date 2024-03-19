@@ -5,6 +5,7 @@
 #include <cuda.h>
 #include <float.h>
 #include <string.h>
+#include <time.h>
 
 #include "gpu_functions.h"
 
@@ -28,6 +29,25 @@ __host__ void debug_print(float *matrice_dev, int w, int h, int c, int n){
             printf("----\n");
         }
         printf("\n##########\n--------------------\n##########\n");
+    }
+
+    free(tmp);
+    return;
+}
+
+__host__ void save_parameter(float *param, int w, int h, int c, int n, FILE *fp){
+    float *tmp = (float *)malloc(sizeof(float) * w * h * c * n);
+    cudaMemcpy(tmp, param, sizeof(float) * w * h * c * n, cudaMemcpyDeviceToHost);
+
+    for(int l = 0; l < n; l++){
+        for(int i = 0; i < c; i++){
+            for(int j = 0; j < h; j++){
+                for(int k = 0; k < w; k++){
+                    fprintf(fp, "%e ",tmp[(((k + j * w) + i * (h * w)) + l * (h * w * c))]);
+                }
+                fprintf(fp, "\n");
+            }
+        }
     }
 
     free(tmp);
@@ -93,7 +113,7 @@ __host__ void save_img(char *name, float *image){
     printf("Image was saved successfully\n");
 }
 
-__host__ void load_example_to_device(mnist_data data, float *img_dev, float *target, char *name){
+__host__ void load_example_to_device(mnist_data data, float *img_dev, float *target){
     float *tmp = (float *)malloc(sizeof(float) * 32 * 32);
 
     for(int i = 0; i < 32; i++){
@@ -270,21 +290,36 @@ int main(){
     */
     //mean_normalization(img_dev, in_w, in_h, 1);
 
-    FILE *file_p;
-    if((file_p = fopen("loss_plot.txt", "w")) == NULL){
-        printf("File non torvato\n");
+    FILE *loss_file, *time_file, *prediction_file, *parameter_file;
+    char parameter_file_name[20];
+    if((loss_file = fopen("loss_plot.txt", "w")) == NULL){
+        printf("\"loss_plot.txt\" non torvato\n");
         exit(1);
     }
+    if((time_file = fopen("execution_time.txt", "w")) == NULL){
+        printf("\"loss_plot.txt\" non trovato\n");
+        exit(1);
+    }
+    if((prediction_file = fopen("predictions.txt", "w")) == NULL){
+        printf("\"predictions.txt\" non trovato\n");
+        exit(1);
+    }
+
+    /****
+     * Gestione del tempo
+    */
+    time_t start_time = time(NULL);
+    time_t partial_time;
 
     /****
      * Inizio del ciclo per fare apprendimento. L'indice da usare è il numero di epoche
      * per le quali si vuole addestrare la rete.
     */
-    char name[100];
-    for(int epoch = 0; epoch < 10000; epoch++){
-        sprintf(name, "epoch_%d.pgm", epoch);
-        load_example_to_device(data[epoch], img_dev, target, name);
-        for(int batch_dim = 0; batch_dim < 1; batch_dim++){
+    //char name[100];
+    for(int epoch = 0; epoch < 1; epoch++){
+        for(int batch_dim = 0; batch_dim < 5; batch_dim++){
+            //sprintf(name, "epoch_%d.pgm", epoch);
+            load_example_to_device(data[batch_dim], img_dev, target);
 
             /****
              * Calcolo del primo layer convolutivo con la relativa funzione di attivazion tanh
@@ -459,7 +494,7 @@ int main(){
             //     printf("Loss = %e\n", loss);
             // }
             //printf("Loss = %e\n", loss);
-            fprintf(file_p, "%d %e\n", epoch, loss);
+            //fprintf(file_p, "%d %e\n", epoch, loss);
 
 
             // Inizio della BackPropagation
@@ -784,6 +819,9 @@ int main(){
                 matrix_dot_product<<<grid, block>>>(dC0 + (i * in_w * in_h), dA0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
             }
 
+            
+            //debug_print(dC0, 28, 28, 6, 1);
+
             /****
              * Calcoliamo la derivata del secondo gruppo di kernel di dimensioni (5 x 5), di cui
              * ne abbiamo 6.
@@ -801,45 +839,101 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             clean_vector<<<1, 150>>>(dF0, 5 * 5 * 6);
+            /*for(int i = 0; i < kernel_num_first_layer; i++){
+                convolution3D<<<grid, block>>>(img_dev, dF0 + (i * out_w * out_h/* * kernel_num_first_layer), dC0 + (i * w_2 * h_2), out_w, out_h, padding, stride_c, h_2);
+            }*/
+
+            //debug_print(img_dev, 32, 32, 1, 1);
+
             for(int i = 0; i < kernel_num_first_layer; i++){
-                convolution3D<<<grid, block>>>(img_dev, dF0 + (i * out_w * out_h * kernel_num_first_layer), dC0 + (i * w_2 * h_2), out_w, out_h, padding, stride_c, h_2);
+                convolution3D<<<grid, block>>>(img_dev, dF0 + (i * out_h * out_w), dC0 + (i * h_2 * w_2), out_w, out_h, padding, stride_c, h_2);
+            }
+
+            debug_print(dF0, 5, 5, 1, 6);
+
+            /*-------------------------------
+                Fine calcolo delle derivate.
+                Inizio aggiornamento dei parametri
+            */
+            block = {1024};
+            grid = {(5 * 5 * 6) / 1024 + 1};
+            matrix_scalar_product<<<grid, block>>>(dF0, LEARNING_RATE, 5 * 5 * 6, 1, 0);
+            subtraction<<<grid, block>>>(kernels_first_layer_dev, kernels_first_layer_dev, dF0, 5 * 5 * 6);
+
+            block = {1024};
+            grid = {(5 * 5 * 6 * 16) / 1024 + 1};
+            matrix_scalar_product<<<grid, block>>>(dF1, LEARNING_RATE, 5 * 5 * 6 * 16, 1, 0);
+            subtraction<<<grid, block>>>(kernels_second_layer_dev, kernels_second_layer_dev, dF1, 5 * 5 * 6 * 16);
+
+            block = {1024};
+            grid = {(5 * 5 * 6 * 120) / 1024 + 1};
+            matrix_scalar_product<<<grid, block>>>(dF2, LEARNING_RATE, 5 * 5 * 6 * 120, 1, 0);
+            subtraction<<<grid, block>>>(kernels_third_layer_dev, kernels_third_layer_dev, dF2, 5 * 5 * 6 * 120);
+
+            block = {1024};
+            grid = {(84 * 120) / 1024 + 1};
+            matrix_scalar_product<<<grid, block>>>(dW1, LEARNING_RATE, 84 * 120, 1, 0);
+            subtraction<<<grid, block>>>(fc_first_layer_dev, fc_first_layer_dev, dW1, 84 * 120);
+
+            block = {1024};
+            grid = {(10 * 84) / 1024 + 1};
+            matrix_scalar_product<<<grid, block>>>(dW2, LEARNING_RATE, 10 * 84, 1, 0);
+            subtraction<<<grid, block>>>(fc_second_layer_dev, fc_second_layer_dev, dW2, 10 * 84);
+
+            /****
+             * Gestione del salvataggio di:
+             * loss
+             * parametri
+             * predizioni
+             * tempo
+            */
+
+            if(batch_dim % 5 == 0){
+                fprintf(loss_file, "%d\t%e\n", (batch_dim + epoch * 60000), loss);       
+
+                fflush(loss_file);             
+            }
+
+            if(batch_dim % 1000 == 0){
+                fprintf(prediction_file, "Epoch: %d\tIteration: %d\n", epoch, batch_dim);
+                for(int i = 0; i < 10; i++)fprintf(prediction_file, "%.3f\t", prediction[i]);
+                fprintf(prediction_file, "\n");
+                fflush(prediction_file);
+
+                partial_time = time(NULL);
+                fprintf(time_file, "Epoch: %d\tIteration: %d\t\t%02d:%02d\n", epoch, batch_dim, (int)(difftime(partial_time, start_time)) / 60, (int)(difftime(partial_time, start_time)) % 60);
+                fflush(time_file);
             }
         }
 
-        //debug_print(dF0, 5, 5, 6, 1);
+        sprintf(parameter_file_name, "epoch_%d.txt", epoch);
+        if((parameter_file = fopen(parameter_file_name, "w")) == NULL){
+            printf("\"%s\" non trovato\n", parameter_file_name);
+            exit(1);
+        }
+        fprintf(parameter_file, "#kernel 1\n");
+        fprintf(parameter_file, "5 5 1 6\n");
+        save_parameter(kernels_first_layer_dev, 5, 5, 1, 6, parameter_file);
+        fprintf(parameter_file, "#kernel 2\n");
+        fprintf(parameter_file, "5 5 6 16\n");
+        save_parameter(kernels_second_layer_dev, 5, 5, 6, 6, parameter_file);
+        fprintf(parameter_file, "#kernel 3\n");
+        fprintf(parameter_file, "5 5 16 120\n");
+        save_parameter(kernels_third_layer_dev, 5, 5, 16, 120, parameter_file);
+        fprintf(parameter_file, "#weights 1\n");
+        fprintf(parameter_file, "120 84 1 1\n");
+        save_parameter(fc_first_layer_dev, 120, 84, 1, 1, parameter_file);
+        fprintf(parameter_file, "#weights 2\n");
+        fprintf(parameter_file, "10 84 1 1\n");
+        save_parameter(fc_second_layer_dev, 84, 10, 1, 1, parameter_file);
 
-        /*-------------------------------
-            Fine calcolo delle derivate.
-            Inizio aggiornamento dei parametri
-        */
-        block = {1024};
-        grid = {(5 * 5 * 6) / 1024 + 1};
-        matrix_scalar_product<<<grid, block>>>(dF0, LEARNING_RATE, 5 * 5 * 6, 1, 0);
-        subtraction<<<grid, block>>>(kernels_first_layer_dev, kernels_first_layer_dev, dF0, 5 * 5 * 6);
-
-        block = {1024};
-        grid = {(5 * 5 * 6 * 16) / 1024 + 1};
-        matrix_scalar_product<<<grid, block>>>(dF1, LEARNING_RATE, 5 * 5 * 6 * 16, 1, 0);
-        subtraction<<<grid, block>>>(kernels_second_layer_dev, kernels_second_layer_dev, dF1, 5 * 5 * 6 * 16);
-
-        block = {1024};
-        grid = {(5 * 5 * 6 * 120) / 1024 + 1};
-        matrix_scalar_product<<<grid, block>>>(dF2, LEARNING_RATE, 5 * 5 * 6 * 120, 1, 0);
-        subtraction<<<grid, block>>>(kernels_third_layer_dev, kernels_third_layer_dev, dF2, 5 * 5 * 6 * 120);
-
-        block = {1024};
-        grid = {(84 * 120) / 1024 + 1};
-        matrix_scalar_product<<<grid, block>>>(dW1, LEARNING_RATE, 84 * 120, 1, 0);
-        subtraction<<<grid, block>>>(fc_first_layer_dev, fc_first_layer_dev, dW1, 84 * 120);
-
-        block = {1024};
-        grid = {(10 * 84) / 1024 + 1};
-        matrix_scalar_product<<<grid, block>>>(dW2, LEARNING_RATE, 10 * 84, 1, 0);
-        subtraction<<<grid, block>>>(fc_second_layer_dev, fc_second_layer_dev, dW2, 10 * 84);
-
+        fclose(parameter_file);
+        
     }
 
-    fclose(file_p);
+    fclose(loss_file);
+    fclose(time_file);
+    fclose(prediction_file);
 
     free(kernels_first_layer);
     free(kernels_second_layer);

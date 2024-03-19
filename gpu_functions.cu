@@ -14,55 +14,53 @@
 
 #include "gpu_functions.h"
 
-__global__ void convolution(float *in, float *out, float *kernel, int new_h, int new_w, int padding, int stride){
+__global__ void convolution(float *in, float *out, float *kernel, int in_dim, int out_dim, int kernel_dim, int padding_f, int stride_f){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
-    if(idx < new_w && idy < new_h){
+    if(idx < out_dim && idy < out_dim){
 
         int i, j;
-        int r = KERNEL_DIM / 2;
-        int c = KERNEL_DIM / 2;
 
         float tmp = 0;
         float val;
 
-        int new_idx = idx * stride + c - padding;
-        int new_idy = idy * stride + r - padding;
+        int new_idx = idx * stride_f - padding_f;
+        int new_idy = idy * stride_f - padding_f;
 
-        for(i = -r; i <= r; i++){
-            for(j = -c; j <= c; j++){
-                val = ((new_idy + i) < 0 || (new_idy + i) >= new_h || (new_idx + j) < 0 || (new_idx + j) >= new_w) ? 0 : in[(new_idy + i) * new_w + new_idx + j];
-                tmp += kernel[(r-i) * KERNEL_DIM + (c-j)] * val;
+        for(i = 0; i < kernel_dim; i++){
+            for(j = 0; j < kernel_dim; j++){
+                val = ((new_idy + i) < 0 || (new_idy + i) >= in_dim || (new_idx + j) < 0 || (new_idx + j) >= in_dim) ? 0 : in[(new_idy + i) * in_dim + new_idx + j];
+                //val = in[(new_idy + i) * in_dim + new_idx + j];
+                tmp += kernel[(kernel_dim * kernel_dim - 1) - (i * kernel_dim + j)] * val;
             }
         }
-        out[idy * new_w + idx] = tmp;
+        out[idy * out_dim + idx] = tmp;
     }
 }
 
-__global__ void convolution3D(float *in, float *out, float *kernel, int new_h, int new_w, int padding, int stride, int kernel_dim){
+__global__ void convolution3D(float *in, float *out, float *kernel, int in_dim, int out_dim, int kernel_dim, int padding_f, int stride_f){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
-    if(idx < new_w && idy < new_h){
+    if(idx < out_dim && idy < out_dim){
 
         int i, j;
-        int r = kernel_dim / 2;
-        int c = kernel_dim / 2;
 
         float tmp = 0;
         float val;
 
-        int new_idx = idx * stride + c - padding;
-        int new_idy = idy * stride + r - padding;
+        int new_idx = idx * stride_f - padding_f;
+        int new_idy = idy * stride_f - padding_f;
 
-        for(i = -r; i <= r; i++){
-            for(j = -c; j <= c; j++){
-                val = ((new_idy + i) < 0 || (new_idy + i) >= new_h || (new_idx + j) < 0 || (new_idx + j) >= new_w) ? 0 : in[(new_idy + i) * new_w + new_idx + j];
-                tmp += kernel[(r-i) * kernel_dim + (c-j)] * val;
+        for(i = 0; i < kernel_dim; i++){
+            for(j = 0; j < kernel_dim; j++){
+                val = ((new_idy + i) < 0 || (new_idy + i) >= in_dim || (new_idx + j) < 0 || (new_idx + j) >= in_dim) ? 0 : in[(new_idy + i) * in_dim + new_idx + j];
+                //val = in[(new_idy + i) * in_dim + new_idx + j];
+                tmp += kernel[(kernel_dim * kernel_dim - 1) - (i * kernel_dim + j)] * val;
             }
         }
-        out[idy * new_w + idx] += tmp;
+        out[idy * out_dim + idx] += tmp;
     }
 }
 

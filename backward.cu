@@ -297,7 +297,7 @@ int main(){
         exit(1);
     }
     if((time_file = fopen("execution_time.txt", "w")) == NULL){
-        printf("\"loss_plot.txt\" non trovato\n");
+        printf("\"execution_time.txt\" non trovato\n");
         exit(1);
     }
     if((prediction_file = fopen("predictions.txt", "w")) == NULL){
@@ -316,8 +316,8 @@ int main(){
      * per le quali si vuole addestrare la rete.
     */
     //char name[100];
-    for(int epoch = 0; epoch < 1; epoch++){
-        for(int batch_dim = 0; batch_dim < 4; batch_dim++){
+    for(int epoch = 0; epoch < 4; epoch++){
+        for(int batch_dim = 0; batch_dim < 60000; batch_dim++){
             //sprintf(name, "epoch_%d.pgm", epoch);
             load_example_to_device(data[batch_dim], img_dev, target);
 
@@ -850,7 +850,7 @@ int main(){
                 convolution3D<<<grid, block>>>(img_dev, dF0 + (i * out_h * out_w), dC0 + (i * h_2 * w_2), in_h, out_h, h_2, padding, stride_c);
             }
 
-            debug_print(dF0, 5, 5, 1, 6);
+            //debug_print(dF0, 5, 5, 1, 6);
 
             /*-------------------------------
                 Fine calcolo delle derivate.

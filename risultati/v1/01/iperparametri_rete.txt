@@ -1,0 +1,5 @@
+learning rate: 0.5
+epoche: 4
+immagini usate: 60000
+Stochastic gradient descent
+tempo: circa 20 ore

@@ -54,6 +54,24 @@ __host__ void save_parameter(float *param, int w, int h, int c, int n, FILE *fp)
     return;
 }
 
+__host__ void load_parameter(float *output, FILE *fp){
+    char str[100];
+    int t;
+    fscanf(fp, "%s %d", str, &t);
+    int w, h, c, n;
+    fscanf(fp, "%d %d %d %d\n", &w, &h, &c, &n);
+
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < c; j++){
+            for(int k = 0; k < h; k++){
+                for(int l = 0; l < w; l++){
+                    fscanf(fp, "%e", &(output[(((l + k * w) + j * (h * w)) + i * (h * w * c))]));
+                }
+            }
+        }
+    }
+}
+
 __host__ void mean_max_min(float *matrix, float *mean, float *max, float *min, int w, int h, int c){
     float tmp;
     float sum = 0;
@@ -145,7 +163,6 @@ __host__ void load_example_to_device(mnist_data data, float *img_dev, float *tar
 }
 
 int main(){
-    srand(2);
 
     /***
      * Definizione dei parametri della rete.
@@ -183,11 +200,42 @@ int main(){
     float *fc_first_layer = (float *) malloc(sizeof(float) * fc_second_dim * fc_first_dim);         // W1 (84 x 120)
     float *fc_second_layer = (float *) malloc(sizeof(float) * fc_third_dim * fc_second_dim);        // W2 (10 x 84)
     float *prediction = (float *) malloc(sizeof(float) * fc_third_dim);
+
+#ifndef PARAMETER_FROM_FILE
+
+    time_t seed = time(NULL);
+    srand(seed);
+    FILE *fp;
+    if((fp = fopen("random_seed.txt", "w")) == NULL){
+        fprintf(stderr, "random_seed.txt non trovato\n");
+        exit(1);
+    }
+    fprintf(fp, "%ld", seed);
+    fclose(fp);
+
     for(int i = 0; i < KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer; i++) kernels_first_layer[i] = (float)rand() / (float)RAND_MAX;
     for(int i = 0; i < KERNEL_DIM * KERNEL_DIM * kernel_num_first_layer * kernel_num_second_layer; i++) kernels_second_layer[i] = (float)rand() / (float)RAND_MAX;
     for(int i = 0; i < KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer * kernel_num_third_layer; i++) kernels_third_layer[i] = (float)rand() / (float)RAND_MAX;
     for(int i = 0; i < fc_first_dim * fc_second_dim; i++) fc_first_layer[i] = (float)rand() / (float)RAND_MAX;
     for(int i = 0; i < fc_second_dim * fc_third_dim; i++) fc_second_layer[i] = (float)rand() / (float)RAND_MAX;
+
+#endif
+#ifdef PARAMETER_FROM_FILE
+
+    FILE *fp;
+    if((fp = fopen("./parameter.txt", "r")) == NULL){
+        fprintf(stderr, "FILE DEI PARAMETRI NON TROVATO\n");
+        exit(1);
+    }
+    load_parameter(kernels_first_layer, fp);
+    load_parameter(kernels_second_layer, fp);
+    load_parameter(kernels_third_layer, fp);
+    load_parameter(fc_first_layer, fp);
+    load_parameter(fc_second_layer, fp);
+
+    fclose(fp);
+
+#endif
 
     /***
      * Definizione e allocazione delle matrici e dei target in ingresso.
@@ -197,7 +245,7 @@ int main(){
     unsigned int counter = 0;
     int ret;
 
-    if(ret = mnist_load("./MNIST_Dataset/train-images.idx3-ubyte", "./MNIST_Dataset/train-labels.idx1-ubyte", &data, &counter)){
+    if(ret = mnist_load("./../MNIST_Dataset/train-images.idx3-ubyte", "./../MNIST_Dataset/train-labels.idx1-ubyte", &data, &counter)){
         printf("Errore: %d\n", ret);
         exit(1);
     }
@@ -280,6 +328,18 @@ int main(){
     cudaMemcpy(fc_first_layer_dev, fc_first_layer, sizeof(float) * fc_first_dim * fc_second_dim, cudaMemcpyHostToDevice);
     cudaMemcpy(fc_second_layer_dev, fc_second_layer, sizeof(float) * fc_second_dim * fc_third_dim, cudaMemcpyHostToDevice);
     //cudaMemcpy(img_dev, img, sizeof(float) * in_w * in_h, cudaMemcpyHostToDevice);
+
+#ifdef CHECK_PARAMETER_CORRECTNESS
+
+    debug_print(kernels_first_layer_dev, 5, 5, 1, 6);
+    debug_print(kernels_second_layer_dev, 5, 5, 6, 16);
+    debug_print(kernels_third_layer_dev, 5, 5, 16, 120);
+    debug_print(fc_first_layer_dev, 120, 84, 1, 1);
+    debug_print(fc_second_layer_dev, 84, 10, 1, 1);
+
+    return 0;
+
+#endif
 
     /*----------------------------------------------------------------------------------------------------------------------------
         La successiva riga di codice serve a normalizzare i valori nell'intervallo [0, 1] così che la prima
@@ -918,7 +978,7 @@ int main(){
         save_parameter(kernels_first_layer_dev, 5, 5, 1, 6, parameter_file);
         fprintf(parameter_file, "#kernel 2\n");
         fprintf(parameter_file, "5 5 6 16\n");
-        save_parameter(kernels_second_layer_dev, 5, 5, 6, 6, parameter_file);
+        save_parameter(kernels_second_layer_dev, 5, 5, 6, 16, parameter_file);
         fprintf(parameter_file, "#kernel 3\n");
         fprintf(parameter_file, "5 5 16 120\n");
         save_parameter(kernels_third_layer_dev, 5, 5, 16, 120, parameter_file);

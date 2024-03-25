@@ -376,7 +376,7 @@ int main(){
      * per le quali si vuole addestrare la rete.
     */
     //char name[100];
-    for(int epoch = 0; epoch < 4; epoch++){
+    for(int epoch = 0; epoch < 3; epoch++){
         for(int batch_dim = 0; batch_dim < 60000; batch_dim++){
             //sprintf(name, "epoch_%d.pgm", epoch);
             load_example_to_device(data[batch_dim], img_dev, target);
@@ -479,7 +479,7 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             // Prima di calcolare i nuovi valori ripuliamo la matrice second_conv perché la convolutin3D sovrascrive i valori già presenti inmemoria.
-            clean_vector<<<((out_h * out_w * kernel_num_third_layer) / 1024), 1024>>>(third_conv, out_h * out_w * kernel_num_third_layer);
+            clean_vector<<<((out_h * out_w * kernel_num_third_layer) / 1024 + 1), 1024>>>(third_conv, out_h * out_w * kernel_num_third_layer);
             for(int i = 0; i < kernel_num_third_layer; i++){
                 for(int j = 0; j < kernel_num_second_layer; j++){
                     convolution3D<<<grid, block>>>(second_pool + (j * in_h * in_w), third_conv + (i * out_h * out_w), kernels_third_layer_dev + (j * KERNEL_DIM * KERNEL_DIM + (i * KERNEL_DIM * KERNEL_DIM * kernel_num_second_layer)), in_h, out_h, KERNEL_DIM, padding, stride_c);

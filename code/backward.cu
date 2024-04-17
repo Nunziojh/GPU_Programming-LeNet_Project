@@ -10,6 +10,10 @@
 
 #include "gpu_functions.h"
 
+#ifdef USAGE
+#define TEST
+#endif
+
 #ifdef TEST
 #define PARAMETER_FROM_FILE
 #endif
@@ -247,12 +251,17 @@ int main(){
     int ret;
 
 #ifdef TEST
+#ifndef USAGE
     if(ret = mnist_load("./../MNIST_Dataset/t10k-images.idx3-ubyte", "./../MNIST_Dataset/t10k-labels.idx1-ubyte", &data, &counter)){
         printf("Errore: %d\n", ret);
         exit(1);
     }
     batch_dim = 10000;
     epoch_dim = 1;
+#else
+    batch_dim = 1;
+    epoch_dim = 1;
+#endif
 
     /***
      * variabili definite per gestire il calcolo dell'accuracy
@@ -372,7 +381,7 @@ int main(){
         exit(1);
     }
 
-    batch_dim = 100;
+    batch_dim = 1000;
     epoch_dim = 1;
 
     struct timeval start, partial;
@@ -404,7 +413,7 @@ int main(){
     /****
      * Stream utilizzati per parallelizzare le chiamate ai kernel
     */
-#define NUMBER_OF_STREAM 16
+#define NUMBER_OF_STREAM 6
     cudaStream_t stream[NUMBER_OF_STREAM];
     for(int i = 0; i < NUMBER_OF_STREAM; i++) cudaStreamCreate(&stream[i]);
 
@@ -412,14 +421,30 @@ int main(){
      * Inizio del ciclo per fare apprendimento. L'indice da usare è il numero di epoche
      * per le quali si vuole addestrare la rete.
     */
+
     for(int epoch = 0; epoch < epoch_dim; epoch++){
         for(int batch = 0; batch < batch_dim; batch++){
 
 #ifdef TIME_TEST
             gettimeofday(&start, NULL);
 #endif
-
+#ifndef USAGE
             load_example_to_device(data[batch], img_dev, target);
+#else
+            FILE *fp;
+            if((fp = fopen("input_img.txt")) == NULL){
+                fprintf(stderr, "Immagine non trovata\n");
+                exit(1);
+            }
+            float *img = malloc(sizeof(float) * 32 * 32);
+            for(int i = 0; i < 32 * 32; i++){
+                fscanf(fp, "%f", &img[i]);
+            }
+
+            fclose(fp);
+            cudaMemcpy(img_dev, img, sizeof(float) * 32 * 32, cudaMemcpyHostToDevice);
+            free(img);
+#endif
 
             /****
              * Calcolo del primo layer convolutivo con la relativa funzione di attivazion tanh
@@ -442,7 +467,7 @@ int main(){
             //debug_print(first_conv, out_w, out_h, 6, 1);
 
             for(int i = 0; i < kernel_num_first_layer; i++){
-                tanh<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(first_conv + (i * out_h * out_w), out_w, out_h, 0);
+                tanh<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(first_conv + (i * out_h * out_w), out_w, out_h);
             }
             cudaDeviceSynchronize();
 
@@ -462,7 +487,7 @@ int main(){
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             for(int i = 0; i < kernel_num_first_layer; i++){
                 avg_pooling<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(first_conv + (i * in_h * in_w), first_pool + (i * out_h * out_w), in_h, in_w, out_h, out_w, stride_p);
-                tanh<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(first_pool + (i * out_h * out_w), out_w, out_h, 0);
+                tanh<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(first_pool + (i * out_h * out_w), out_w, out_h);
             }
             cudaDeviceSynchronize();
 
@@ -489,7 +514,7 @@ int main(){
             cudaDeviceSynchronize();
             mean_normalization(second_conv, out_w, out_h, kernel_num_second_layer);
             for(int i = 0; i < kernel_num_second_layer; i++){
-                tanh<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(second_conv + (i * out_h * out_w), out_w, out_h, 0);
+                tanh<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(second_conv + (i * out_h * out_w), out_w, out_h);
             }
             cudaDeviceSynchronize();
 
@@ -507,7 +532,7 @@ int main(){
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
             for(int i = 0; i < kernel_num_second_layer; i++){
                 avg_pooling<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(second_conv + (i * in_h * in_w), second_pool + (i * out_h * out_w), in_h, in_w, out_h, out_w, stride_p);
-                tanh<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(second_pool + (i * out_h * out_w), out_w, out_h, 0);
+                tanh<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(second_pool + (i * out_h * out_w), out_w, out_h);
             }
             cudaDeviceSynchronize();
             //debug_print(second_pool, out_w, out_h, 16, 1);
@@ -533,7 +558,7 @@ int main(){
             cudaDeviceSynchronize();
             mean_normalization(third_conv, out_w, out_h, kernel_num_third_layer);
             for(int i = 0; i < kernel_num_third_layer; i++){
-                tanh<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(third_conv + (i * out_h * out_w), out_w, out_h, 0);
+                tanh<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(third_conv + (i * out_h * out_w), out_w, out_h);
             }
             cudaDeviceSynchronize();
 
@@ -550,8 +575,8 @@ int main(){
             out_w = m;
             block = {(unsigned int)m, (unsigned int)fc_second_dim};
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
-            matrix_product<<<grid, block>>>(fc_first_layer_dev, third_conv, second_fc, m, fc_second_dim, fc_first_dim);
-            tanh<<<grid, block>>>(second_fc, 1, fc_second_dim, 0);
+            matrix_product<<<grid, block>>>(fc_first_layer_dev, third_conv, second_fc, m, fc_second_dim, fc_first_dim, 1);
+            tanh<<<grid, block>>>(second_fc, 1, fc_second_dim);
 
             //debug_print(second_fc, 1, 84, 1, 1);
 
@@ -566,7 +591,7 @@ int main(){
             out_w = m;
             block = {(unsigned int)m, (unsigned int)fc_third_dim};
             grid = {(unsigned int)(out_w / 32 + 1), (unsigned int)(out_h / 32 + 1)};
-            matrix_product<<<grid, block>>>(fc_second_layer_dev, second_fc, third_fc, m, fc_third_dim, fc_second_dim);
+            matrix_product<<<grid, block>>>(fc_second_layer_dev, second_fc, third_fc, m, fc_third_dim, fc_second_dim, 1);
             //debug_print(third_fc, 1, 10, 1, 1);
 
             /****
@@ -584,16 +609,18 @@ int main(){
 
 #ifdef TEST
                 if(prediction[i] > max){
-                max = prediction[i];
-                prediction_index = i;
-            }
+                    max = prediction[i];
+                    prediction_index = i;
+                }
 #endif
             }
 
 #ifdef TEST
+#ifndef USAGE
             if(target[prediction_index] != 0) prediction_counter++;
 #endif
-
+#endif
+#ifndef USAGE
             /****
              * Calcoliamo il valore della Loss.
             */
@@ -603,7 +630,7 @@ int main(){
                     loss += target[i] * logf(prediction[i]);
             }
             loss = -loss;
-
+#endif
 #ifndef TEST
             // Inizio della BackPropagation
             //---------------------------------------------------------------------------------------------------------------------------------------
@@ -718,10 +745,10 @@ int main(){
             clean_vector<<<(5 * 5 * 16 * 120 / 1024 + 1), 1024>>>(dF2, 5 * 5 * 16 * 120); // 5 * 5 * 16 * 120 = 48000 -> dimensione dei kernel tra il secondo e il terso layer convolutivo, di cui ne abbiamo 120 
             for(int i = 0; i < kernel_num_third_layer; i++){
                 for(int j = 0; j < kernel_num_second_layer; j++){
-                    convolution3D<<<grid, block, 0, stream[j%NUMBER_OF_STREAM]>>>(second_pool + (j * in_h * in_w), dF2 + (j * out_w * out_h + (i * out_w * out_h * kernel_num_second_layer)), dZ0 + (i * h_2 * w_2), in_h, out_h, h_2, padding, stride_c);
+                    convolution3D<<<grid, block/*, 0, stream[j%NUMBER_OF_STREAM]*/>>>(second_pool + (j * in_h * in_w), dF2 + (j * out_w * out_h + (i * out_w * out_h * kernel_num_second_layer)), dZ0 + (i * h_2 * w_2), in_h, out_h, h_2, padding, stride_c);
                 }
             }
-            cudaDeviceSynchronize();
+            // cudaDeviceSynchronize();
 
             // debug_print(dF2 + (5 * 5 * 16 * 119), 5, 5, 16, 1);
 
@@ -745,10 +772,10 @@ int main(){
             clean_vector<<<1, 400>>>(dA3, 5 * 5 * 16); //5 * 5 * 16 = 400
             for(int i = 0; i < kernel_num_third_layer; i++){
                 for(int j = 0; j < kernel_num_second_layer; j++){
-                    convolution3D<<<grid, block, 0, stream[j%NUMBER_OF_STREAM]>>>(kernels_third_layer_dev + (j * in_h * in_w + (i * in_h * in_w * kernel_num_second_layer)), dA3 + (j * out_h * out_w), dZ0 + (i * h_2 * w_2), in_h, out_h, h_2, padding_full_conv, stride_c);
+                    convolution3D<<<grid, block/*, 0, stream[j%NUMBER_OF_STREAM]*/>>>(kernels_third_layer_dev + (j * in_h * in_w + (i * in_h * in_w * kernel_num_second_layer)), dA3 + (j * out_h * out_w), dZ0 + (i * h_2 * w_2), in_h, out_h, h_2, padding_full_conv, stride_c);
                 }
             }
-            cudaDeviceSynchronize();
+            // cudaDeviceSynchronize();
 
             // debug_print(dA3, 5, 5, 16, 1);
 
@@ -766,11 +793,11 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_second_layer; i++){
-                matrix_dot_product<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(second_pool + (i * in_h * in_w), second_pool + (i * in_h * in_w), dP1 + (i * out_h * out_w), out_h, out_w);
-                scalar_subtraction<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(dP1 + (i * in_w * in_h), dP1 + (i * in_w * in_h), out_w, out_h);
-                matrix_dot_product<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(dP1 + (i * in_h * in_w), dA3 + (i * in_h * in_w), dP1 + (i * in_h * in_w), out_w, out_h);
+                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(second_pool + (i * in_h * in_w), second_pool + (i * in_h * in_w), dP1 + (i * out_h * out_w), out_h, out_w);
+                scalar_subtraction<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP1 + (i * in_w * in_h), dP1 + (i * in_w * in_h), out_w, out_h);
+                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP1 + (i * in_h * in_w), dA3 + (i * in_h * in_w), dP1 + (i * in_h * in_w), out_w, out_h);
             }
-            cudaDeviceSynchronize();
+            // cudaDeviceSynchronize();
 
             // debug_print(dP1, 5, 5, 16, 1);
 
@@ -788,9 +815,9 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_second_layer; i++){
-                inverse_avg_pooling<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(dP1 + (i * in_h * in_w), dA2 + (i * out_h * out_w), second_conv + (i * out_h * out_w), in_w, in_h, out_w, out_h, stride_p);
+                inverse_avg_pooling<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP1 + (i * in_h * in_w), dA2 + (i * out_h * out_w), second_conv + (i * out_h * out_w), in_w, in_h, out_w, out_h, stride_p);
             }
-            cudaDeviceSynchronize();
+            // cudaDeviceSynchronize();
 
             // debug_print(dA2, 10, 10, 16, 1);
 
@@ -808,11 +835,11 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_second_layer; i++){
-                matrix_dot_product<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(second_conv + (i * in_w * in_h), second_conv + (i * in_w * in_h), dC1 + (i * out_h * out_w), out_w, out_h);
-                scalar_subtraction<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(dC1 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
-                matrix_dot_product<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(dC1 + (i * in_h * in_w), dA2 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
+                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(second_conv + (i * in_w * in_h), second_conv + (i * in_w * in_h), dC1 + (i * out_h * out_w), out_w, out_h);
+                scalar_subtraction<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dC1 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
+                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dC1 + (i * in_h * in_w), dA2 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
             }
-            cudaDeviceSynchronize();
+            // cudaDeviceSynchronize();
 
             // debug_print(dC1, 10, 10, 16, 1);
 
@@ -836,10 +863,10 @@ int main(){
             clean_vector<<<2, 1024>>>(dA1, 14 * 14 * 6);// 14 * 14 * 6 = 1176, servono due blocchi, provare ad usarne due da 600 invece che da 1024.
             for(int i = 0; i < kernel_num_second_layer; i++){
                 for(int j = 0; j < kernel_num_first_layer; j++){
-                    convolution3D<<<grid, block, 0, stream[j%NUMBER_OF_STREAM]>>>(kernels_second_layer_dev + (j * in_h * in_w + (i * in_h * in_w * kernel_num_first_layer)), dA1 + (j * out_h * out_w), dC1 + (i * h_2 * w_2), in_h, out_h, h_2, padding_full_conv, stride_c);
+                    convolution3D<<<grid, block/* , 0, stream[j%NUMBER_OF_STREAM] */>>>(kernels_second_layer_dev + (j * in_h * in_w + (i * in_h * in_w * kernel_num_first_layer)), dA1 + (j * out_h * out_w), dC1 + (i * h_2 * w_2), in_h, out_h, h_2, padding_full_conv, stride_c);
                 }
             }
-            cudaDeviceSynchronize();
+            // cudaDeviceSynchronize();
 
             // debug_print(dA1, 14, 14, 6, 1);
 
@@ -862,10 +889,10 @@ int main(){
             clean_vector<<<3, 1024>>>(dF1, 5 * 5 * 6 * 16);// 5 * 5 * 6 * 16 = 2400, servono tre blocchi, provare ad usarne tre da 800 invece che da 1024.
             for(int i = 0; i < kernel_num_second_layer; i++){
                 for(int j = 0; j < kernel_num_first_layer; j++){
-                    convolution3D<<<grid, block, 0, stream[j%NUMBER_OF_STREAM]>>>(first_pool + (j * in_h * in_w), dF1 + (j * out_h * out_w + (i * out_h * out_w * kernel_num_first_layer)), dC1 + (i * h_2 * w_2), in_h, out_h, h_2, padding, stride_c);
+                    convolution3D<<<grid, block/* , 0, stream[j%NUMBER_OF_STREAM] */>>>(first_pool + (j * in_h * in_w), dF1 + (j * out_h * out_w + (i * out_h * out_w * kernel_num_first_layer)), dC1 + (i * h_2 * w_2), in_h, out_h, h_2, padding, stride_c);
                 }
             }
-            cudaDeviceSynchronize();
+            // cudaDeviceSynchronize();
 
             // debug_print(dF1, 5, 5, 6, 1);
 
@@ -883,11 +910,11 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_first_layer; i++){
-                matrix_dot_product<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(first_pool + (i * in_h * in_w), first_pool + (i * in_h * in_w), dP0 + (i * out_h * out_w), out_w, out_h);
-                scalar_subtraction<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(dP0 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
-                matrix_dot_product<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(dP0 + (i * in_h * in_w), dA1 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
+                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(first_pool + (i * in_h * in_w), first_pool + (i * in_h * in_w), dP0 + (i * out_h * out_w), out_w, out_h);
+                scalar_subtraction<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP0 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
+                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP0 + (i * in_h * in_w), dA1 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
             }
-            cudaDeviceSynchronize();
+            // cudaDeviceSynchronize();
 
             // debug_print(dA1, 14, 14, 6, 1);
             // debug_print(first_pool, 14, 14, 6, 1);
@@ -907,9 +934,9 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_second_layer; i++){
-                inverse_avg_pooling<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(dP0 + (i * in_h * in_w), dA0 + (i * out_w * out_h), first_conv + (i * out_w * out_h), in_w, in_h, out_w, out_h, stride_p);
+                inverse_avg_pooling<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP0 + (i * in_h * in_w), dA0 + (i * out_w * out_h), first_conv + (i * out_w * out_h), in_w, in_h, out_w, out_h, stride_p);
             }
-            cudaDeviceSynchronize();
+            // cudaDeviceSynchronize();
         
             /****
              * Calcoliamo la derivata delle uscite del primo layer di Convoluzione.
@@ -925,11 +952,11 @@ int main(){
             block = {(unsigned int)out_w, (unsigned int)out_h};
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             for(int i = 0; i < kernel_num_first_layer; i++){
-                matrix_dot_product<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(first_conv + (i * in_w * in_h), first_conv + (i * in_w * in_h), dC0 + (i * out_h * out_w), out_w, out_h);
-                scalar_subtraction<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(dC0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
-                matrix_dot_product<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(dC0 + (i * in_w * in_h), dA0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
+                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(first_conv + (i * in_w * in_h), first_conv + (i * in_w * in_h), dC0 + (i * out_h * out_w), out_w, out_h);
+                scalar_subtraction<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dC0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
+                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dC0 + (i * in_w * in_h), dA0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
             }
-            cudaDeviceSynchronize();
+            // cudaDeviceSynchronize();
 
             
             //debug_print(dC0, 28, 28, 6, 1);
@@ -952,7 +979,7 @@ int main(){
             grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             clean_vector<<<1, 150>>>(dF0, 5 * 5 * 6);
             for(int i = 0; i < kernel_num_first_layer; i++){
-                convolution3D<<<grid, block, 0, stream[i%NUMBER_OF_STREAM]>>>(img_dev, dF0 + (i * out_h * out_w), dC0 + (i * h_2 * w_2), in_h, out_h, h_2, padding, stride_c);
+                convolution3D<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(img_dev, dF0 + (i * out_h * out_w), dC0 + (i * h_2 * w_2), in_h, out_h, h_2, padding, stride_c);
             }
 
             //debug_print(dF0, 5, 5, 1, 6);
@@ -1017,6 +1044,7 @@ int main(){
             gettimeofday(&partial, NULL);
             u_sec = (partial.tv_sec - start.tv_sec) * 1000000 + partial.tv_usec - start.tv_usec;
             fprintf(time_file_test, "%02d:%02d:%03d:%03d\n", (int)(u_sec / 60000000), (int)(u_sec / 1000000) % 60, (int)(u_sec / 1000) % 1000, (int)(u_sec % 1000));
+            fflush(time_file_test);
 #endif
 
         }
@@ -1049,7 +1077,11 @@ int main(){
         
     }
 #ifdef TEST
+#ifndef USAGE
     printf("Valori predetti correttamente, su %d: %d\n", batch_dim, prediction_counter);
+#else
+    printf("Valore predetto: %d\n", prediction_index);
+#endif
 #endif
 
 

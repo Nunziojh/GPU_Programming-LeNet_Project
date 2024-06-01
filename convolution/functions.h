@@ -5,6 +5,7 @@
 #include <cuda_runtime.h>
 #include <stdlib.h>
 #include <stdio.h>
+//commento
 
 #ifdef __linux__
 #include <sys/time.h>

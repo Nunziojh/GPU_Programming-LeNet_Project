@@ -1,4 +1,4 @@
-#include "monolitic.h"
+#include "monolithic.h"
 
 __global__ void convolution_3D(float *input, float *kernel, float *output, int in_width, int in_height, int in_depth, int ker_width, int ker_height, int ker_depth, int out_width, int out_height, int out_depth) {
     int ox = blockIdx.x * blockDim.x + threadIdx.x; //Numero di threads definiti in base alle dimensioni di uscita

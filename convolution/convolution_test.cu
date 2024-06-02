@@ -97,7 +97,7 @@ for(r = 0; r < rounds; r++)
     u_sec = stop_timer(&start, &stop);
     fprintf(file_time_shared, "%02d:%02d:%03d:%03d\n", (int)(u_sec / 60000000), (int)(u_sec / 1000000) % 60, (int)(u_sec / 1000) % 1000, (int)(u_sec % 1000));
 #ifdef DEBUG_PRINT
-    debug_print(host_output, dev_output, "risultatli_shared.txt", f_res, OUT_X, OUT_Y, OUT_Z);
+    debug_print(host_output, dev_output, "risultati_shared.txt", f_res, OUT_X, OUT_Y, OUT_Z, OUT_N);
 #endif
 
     /**

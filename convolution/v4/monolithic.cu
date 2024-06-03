@@ -12,17 +12,14 @@ __global__ void convolution_3D(float *input, float *kernel, float *output, int i
         float in_val, ker_val;
         kernel += (oz * ker_depth * ker_height * ker_width);
 
-        int new_ox = ox;
-        int new_oy = oy;
-
         for(kz = 0; kz < ker_depth; kz++)
         {
             for(ky = 0; ky < ker_height; ky++)
             {
                 for(kx = 0; kx < ker_width; kx++)
                 {
-                    if((new_ox + kx) >= 0 && (new_ox + kx) < in_width && (new_oy + ky) >= 0 && (new_oy + ky) < in_height){
-                        in_val = input[(new_oy + ky) * in_width + new_ox + kx];
+                    if((ox + kx) >= 0 && (ox + kx) < in_width && (oy + ky) >= 0 && (oy + ky) < in_height){
+                        in_val = input[(oy + ky) * in_width + ox + kx];
                         ker_val = kernel[(ker_width * ker_height - 1) - (ky * ker_width + kx)];
                         sum += in_val * ker_val;
                     }

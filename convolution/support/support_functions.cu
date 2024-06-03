@@ -1,6 +1,6 @@
 #include "support_functions.h"
 
-__global__ void clean_vector(float *m, int dim){
+__global__ void clean_vector_dev(float *m, int dim){
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(idx < dim){
@@ -8,14 +8,19 @@ __global__ void clean_vector(float *m, int dim){
     }
 }
 
-__host__ void init_values(float *host_a, float *host_k, float *dev_a, float *dev_k, float *dev_c){
+__host__ void clean_vector_host(float *vec, int dim){
+    for(int i = 0; i < dim; i++) vec[i] = 0;
+}
+
+__host__ void init_values(float *host_a, float *host_k, float *host_c, float *dev_a, float *dev_k, float *dev_c){
     int i;
 
     for(i = 0; i < INPUT_X * INPUT_Y * INPUT_Z * INPUT_N; i++) host_a[i] = (float)rand() / (float)RAND_MAX;
     for(i = 0; i < KERNEL_X * KERNEL_Y * KERNEL_Z * KERNEL_N; i++) host_k[i] = /*(i < KERNEL_X * KERNEL_Y * KERNEL_Z) ? 1 : 0;i / (KERNEL_X * KERNEL_Y * KERNEL_Z * KERNEL_N);*/(float)rand() / (float)RAND_MAX;
     cudaMemcpy(dev_a, host_a, sizeof(float) * INPUT_X * INPUT_Y * INPUT_Z * INPUT_N, cudaMemcpyHostToDevice);
     cudaMemcpy(dev_k, host_k, sizeof(float) * KERNEL_X * KERNEL_Y * KERNEL_Z * KERNEL_N, cudaMemcpyHostToDevice);
-    clean_vector<<<(unsigned int)((OUT_X * OUT_Y * OUT_Z * OUT_N) / min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024) + 1), min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024)>>>(dev_c, OUT_X * OUT_Y * OUT_Z * OUT_N);
+    clean_vector_dev<<<(unsigned int)((OUT_X * OUT_Y * OUT_Z * OUT_N) / min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024) + 1), min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024)>>>(dev_c, OUT_X * OUT_Y * OUT_Z * OUT_N);
+    clean_vector_host(host_c, OUT_X * OUT_Y * OUT_Z * OUT_N);
 }
 
 #ifdef __linux__

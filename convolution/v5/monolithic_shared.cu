@@ -19,13 +19,17 @@ __global__ void convolution_3D_shared(float *input, float *kernel, float *output
 
     if(threadIdx.x < ker_width && threadIdx.y < ker_height && threadIdx.z < ker_depth)
     {
-        for(int j = 0; j < blockDim.z && (j + blockIdx.z * blockDim.z) < ker_number; j++)
+        for(int i = 0; i < KERNEL_Z; i++)
+        {
+            filter[threadIdx.z * (KERNEL_X * KERNEL_Y * KERNEL_Z) + i * (KERNEL_X * KERNEL_Y) + threadIdx.y * KERNEL_X + threadIdx.x] = kernel[oz * (KERNEL_X * KERNEL_Y * KERNEL_Z) + i * (KERNEL_X * KERNEL_Y) + threadIdx.y * KERNEL_X + threadIdx.x];
+        }
+        /*for(int j = 0; j < blockDim.z && (j + blockIdx.z * blockDim.z) < ker_number; j++)
         {
             for(int i = threadIdx.z; i < ker_depth; i+=blockDim.z)
             {
                 filter[((j * ker_depth + i) * ker_height + threadIdx.y) * ker_width + threadIdx.x] = kernel[(((j + blockIdx.z * blockDim.z) * ker_depth + i) * ker_height + threadIdx.y) * ker_width + threadIdx.x];
             }
-        }
+        }*/
     }
 
     __syncthreads();
@@ -35,6 +39,7 @@ __global__ void convolution_3D_shared(float *input, float *kernel, float *output
         float sum = 0.0f;
         int kz, ky, kx;
         float in_val, ker_val;
+        filter += (threadIdx.z * ker_depth * ker_height * ker_width);
 
         for(kz = 0; kz < ker_depth; kz++)
         {

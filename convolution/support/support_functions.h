@@ -3,8 +3,9 @@
 
 #include "..\functions.h"
 
-__global__ void clean_vector(float *m, int dim);
-__host__ void init_values(float *host_a, float *host_k, float *dev_a, float *dev_k, float *dev_c);
+__global__ void clean_vector_dev(float *m, int dim);
+__host__ void clean_vector_host(float *m, int dim);
+__host__ void init_values(float *host_a, float *host_k, float *host_c, float *dev_a, float *dev_k, float *dev_c);
 
 #ifdef __linux__
 __host__ void start_timer(struct timeval *start);

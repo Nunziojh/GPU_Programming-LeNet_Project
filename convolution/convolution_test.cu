@@ -7,6 +7,7 @@ int main(int argc, char **argv)
     srand(time(NULL));
 
     int i, j, r;
+    int total_out_dim = OUT_X * OUT_Y * OUT_Z * OUT_N;
 
     FILE *file_time_base, *file_time_shared, *file_time_optimized, *file_time_monolithic, *file_time_monolithic_shared;
 #ifdef DEBUG_PRINT
@@ -35,11 +36,11 @@ int main(int argc, char **argv)
     cudaMalloc((void **)&dev_output, OUT_X * OUT_Y * OUT_Z * OUT_N * sizeof(float));
 
 #ifdef DEBUG_PRINT
-    init_values(host_input, host_kernel, dev_input, dev_kernel, dev_output);
-    printf("\t---INPUT---\n");
+    init_values(host_input, host_kernel, host_output, dev_input, dev_kernel, dev_output);
+    /*printf("\t---INPUT---\n");
     debug_print(host_input, NULL, NULL, NULL, INPUT_X, INPUT_Y, INPUT_Z, INPUT_N);
     printf("\t---KERNEL---\n");
-    debug_print(host_kernel, NULL, NULL, NULL, KERNEL_X, KERNEL_Y, KERNEL_Z, KERNEL_N);
+    debug_print(host_kernel, NULL, NULL, NULL, KERNEL_X, KERNEL_Y, KERNEL_Z, KERNEL_N);*/
 #endif
     
     dim3 block, grid;
@@ -52,19 +53,38 @@ for(r = 0; r < rounds; r++)
     * A seconda della struttura di: input, kernel e output è necessario modificare la struttura della chiamata alla funzione.
    */
 #ifdef DEBUG_PRINT
-    clean_vector<<<(unsigned int)((OUT_X * OUT_Y * OUT_Z * OUT_N) / min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024) + 1), min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024)>>>(dev_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+    clean_vector_dev<<<(unsigned int)(total_out_dim / min(total_out_dim, 1024) + 1), min(total_out_dim, 1024)>>>(dev_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+    clean_vector_host(host_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+    cudaDeviceSynchronize();
 #else
-    init_values(host_input, host_kernel, dev_input, dev_kernel, dev_output);
+    init_values(host_input, host_kernel, host_output, dev_input, dev_kernel, dev_output);
 #endif
     start_timer(&start);
     cudaProfilerStart();
     block = {(unsigned int)min(32, OUT_X), (unsigned int)min(32, OUT_Y)};
     grid = {(unsigned int)(OUT_X / block.x + 1), (unsigned int)(OUT_Y / block.y + 1)};
+    
+    //Foreward
+    /*for(i = 0; i < OUT_Z; i++){
+        for(j = 0; j < INPUT_Z; j++){
+            convolution_base<<<grid, block>>>(dev_input + (j * INPUT_X * INPUT_Y), dev_output + (i * OUT_X * OUT_Y), dev_kernel + (j * KERNEL_X * KERNEL_Y + (i * KERNEL_X * KERNEL_Y * KERNEL_Z)), INPUT_X, OUT_X, KERNEL_X, 0);
+        }
+    }*/
+    
+    //dF*
+    /*for(i = 0; i < OUT_N; i++){
+        for(j = 0; j < OUT_Z; j++){
+            convolution_base<<<grid, block>>>(dev_input + (j * INPUT_X * INPUT_Y), dev_output + (j * OUT_X * OUT_Y + (i * OUT_X * OUT_Y * OUT_Z)), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X, PADDING);
+        }
+    }*/
+
+    //dA*
     for(i = 0; i < INPUT_N; i++){
         for(j = 0; j < OUT_Z; j++){
-            convolution_base<<<grid, block>>>(dev_input + (j * INPUT_X * INPUT_Y + (i * INPUT_X * INPUT_Y * INPUT_Z)), dev_output + (j * OUT_X * OUT_Y), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X, 0);
+            convolution_base<<<grid, block>>>(dev_input + (j * INPUT_X * INPUT_Y + (i * INPUT_X * INPUT_Y * INPUT_Z)), dev_output + (j * OUT_X * OUT_Y), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X, PADDING);
         }
     }
+
     cudaDeviceSynchronize();
     cudaProfilerStop();
     u_sec = stop_timer(&start, &stop);
@@ -78,20 +98,39 @@ for(r = 0; r < rounds; r++)
     * A seconda della struttura di: input, kernel e output è necessario modificare la struttura della chiamata alla funzione.
     */
 #ifdef DEBUG_PRINT
-    clean_vector<<<(unsigned int)((OUT_X * OUT_Y * OUT_Z * OUT_N) / min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024) + 1), min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024)>>>(dev_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+    clean_vector_dev<<<(unsigned int)(total_out_dim / min(total_out_dim, 1024) + 1), min(total_out_dim, 1024)>>>(dev_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+    clean_vector_host(host_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+    cudaDeviceSynchronize();
 #else
-    init_values(host_input, host_kernel, dev_input, dev_kernel, dev_output);
+    init_values(host_input, host_kernel, host_output, dev_input, dev_kernel, dev_output);
 #endif
     start_timer(&start);
     cudaProfilerStart();
     block = {(unsigned int)min(32, max(OUT_X, INPUT_X)), (unsigned int)min(32, max(OUT_Y, INPUT_Y))};
     grid = {(unsigned int)(max(OUT_X, INPUT_X) / block.x + 1), (unsigned int)( max(OUT_Y, INPUT_Y) / block.y + 1)};
     shared_mem_dim = (INPUT_X * INPUT_Y + KERNEL_X * KERNEL_Y) * sizeof(float);
-    for(i = 0; i < OUT_Z; i++){
+    
+    //Foreward
+    /*for(i = 0; i < OUT_Z; i++){
         for(j = 0; j < INPUT_Z; j++){
             convolution_shared<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y), dev_output + (i * OUT_X * OUT_Y), dev_kernel + (j * KERNEL_X * KERNEL_Y + (i * KERNEL_X * KERNEL_Y * KERNEL_Z)), INPUT_X, OUT_X, KERNEL_X);
         }
+    }*/
+
+    //dF*
+    /*for(i = 0; i < OUT_N; i++){
+        for(j = 0; j < OUT_Z; j++){
+            convolution_shared<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y), dev_output + (j * OUT_X * OUT_Y + (i * OUT_X * OUT_Y * OUT_Z)), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X);
+        }
+    }*/
+
+    //dA*
+    for(i = 0; i < INPUT_N; i++){
+        for(j = 0; j < OUT_Z; j++){
+            convolution_shared<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y + (i * INPUT_X * INPUT_Y * INPUT_Z)), dev_output + (j * OUT_X * OUT_Y), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X);
+        }
     }
+
     cudaDeviceSynchronize();
     cudaProfilerStop();
     u_sec = stop_timer(&start, &stop);
@@ -104,20 +143,39 @@ for(r = 0; r < rounds; r++)
      * Versione Optimized.
     */
 #ifdef DEBUG_PRINT
-     clean_vector<<<(unsigned int)((OUT_X * OUT_Y * OUT_Z * OUT_N) / min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024) + 1), min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024)>>>(dev_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+     clean_vector_dev<<<(unsigned int)(total_out_dim / min(total_out_dim, 1024) + 1), min(total_out_dim, 1024)>>>(dev_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+     clean_vector_host(host_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+     cudaDeviceSynchronize();
 #else
-    init_values(host_input, host_kernel, dev_input, dev_kernel, dev_output);
+    init_values(host_input, host_kernel, host_output, dev_input, dev_kernel, dev_output);
 #endif
     start_timer(&start);
     cudaProfilerStart();
     block = {(unsigned int)min(32, max(OUT_X, INPUT_X)), (unsigned int)min(32, max(OUT_Y, INPUT_Y))};
     grid = {(unsigned int)(max(OUT_X, INPUT_X) / block.x + 1), (unsigned int)( max(OUT_Y, INPUT_Y) / block.y + 1)};
     shared_mem_dim = (INPUT_X * INPUT_Y + KERNEL_X * KERNEL_Y) * sizeof(float);
+    
+    //Foreward
+    /*for(i = 0; i < OUT_Z; i++){
+        for(j = 0; j < INPUT_Z; j++){
+            convolution_base<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y), dev_output + (i * OUT_X * OUT_Y), dev_kernel + (j * KERNEL_X * KERNEL_Y + (i * KERNEL_X * KERNEL_Y * KERNEL_Z)), INPUT_X, OUT_X, KERNEL_X, 0);
+        }
+    }*/
+    
+    //dF*
+    /*for(i = 0; i < OUT_N; i++){
+        for(j = 0; j < OUT_Z; j++){
+            convolution_optimized<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y), dev_output + (j * OUT_X * OUT_Y + (i * OUT_X * OUT_Y * OUT_Z)), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X, PADDING);
+        }
+    }*/
+
+    //dA*
     for(i = 0; i < INPUT_N; i++){
         for(j = 0; j < OUT_Z; j++){
-            convolution_optimized<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y + (i * INPUT_X * INPUT_Y * INPUT_Z)), dev_output + (j * OUT_X * OUT_Y), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X, 0);
+            convolution_optimized<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y + (i * INPUT_X * INPUT_Y * INPUT_Z)), dev_output + (j * OUT_X * OUT_Y), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X, PADDING);
         }
     }
+
     cudaDeviceSynchronize();
     cudaProfilerStop();
     u_sec = stop_timer(&start, &stop);
@@ -131,22 +189,24 @@ for(r = 0; r < rounds; r++)
      * A seconda della struttura di: input, kernel e output è nesessario selezionare la funzione corretta.
     */
 #ifdef DEBUG_PRINT
-    clean_vector<<<(unsigned int)((OUT_X * OUT_Y * OUT_Z * OUT_N) / min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024) + 1), min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024)>>>(dev_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+    clean_vector_dev<<<(unsigned int)(total_out_dim / min(total_out_dim, 1024) + 1), min(total_out_dim, 1024)>>>(dev_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+    clean_vector_host(host_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+    cudaDeviceSynchronize();
 #else
-    init_values(host_input, host_kernel, dev_input, dev_kernel, dev_output);
+    init_values(host_input, host_kernel, host_output, dev_input, dev_kernel, dev_output);
 #endif
     start_timer(&start);
     cudaProfilerStart();
 
     // Da usare nella Foreward
-    block = {(unsigned int)min(10, OUT_X), (unsigned int)min(10, OUT_Y), (unsigned int)min(10, OUT_Z)};
-    grid = {(unsigned int)ceil((float)OUT_X / block.x), (unsigned int)ceil((float)OUT_Y / block.y), (unsigned int)ceil((float)OUT_Z / block.z)};
-    convolution_3D<<<grid, block>>>(dev_input, dev_kernel, dev_output, INPUT_X, INPUT_Y, INPUT_Z, KERNEL_X, KERNEL_Y, KERNEL_Z, OUT_X, OUT_Y, OUT_Z);
+    // block = {(unsigned int)min(10, OUT_X), (unsigned int)min(10, OUT_Y), (unsigned int)min(10, OUT_Z)};
+    // grid = {(unsigned int)ceil((float)OUT_X / block.x), (unsigned int)ceil((float)OUT_Y / block.y), (unsigned int)ceil((float)OUT_Z / block.z)};
+    // convolution_3D<<<grid, block>>>(dev_input, dev_kernel, dev_output, INPUT_X, INPUT_Y, INPUT_Z, KERNEL_X, KERNEL_Y, KERNEL_Z, OUT_X, OUT_Y, OUT_Z);
 
     // Da usare nella Backward dove le uscite sono dA3 e dA1
-    // block = {(unsigned int)min(10, OUT_X), (unsigned int)min(10, OUT_Y), (unsigned int)min(10, OUT_Z)};
-    // grid = {(unsigned int)ceil((float)OUT_X / block.x), (unsigned int)ceil((float)OUT_Y / block.y), (unsigned int)(OUT_Z / block.z + 1)};
-    // full_Convolution<<<grid, block>>>(dev_input, dev_kernel, dev_output, INPUT_X, INPUT_Y, INPUT_Z, KERNEL_X, KERNEL_Y, KERNEL_Z, KERNEL_N, OUT_X, OUT_Y, OUT_Z, PADDING);
+    block = {(unsigned int)min(10, OUT_X), (unsigned int)min(10, OUT_Y), (unsigned int)min(10, OUT_Z)};
+    grid = {(unsigned int)ceil((float)OUT_X / block.x), (unsigned int)ceil((float)OUT_Y / block.y), (unsigned int)ceil((float)OUT_Z / block.z)};
+    full_Convolution<<<grid, block>>>(dev_input, dev_kernel, dev_output, INPUT_X, INPUT_Y, INPUT_Z, KERNEL_X, KERNEL_Y, KERNEL_Z, KERNEL_N, OUT_X, OUT_Y, OUT_Z, PADDING);
 
     // Da usare nella Backward dove le uscite sono dF2, dF1, dF0
     // block = {(unsigned int)min(10, (OUT_X * OUT_Y)), (unsigned int)min(10, OUT_Z), (unsigned int)min(10, OUT_N)};
@@ -166,10 +226,15 @@ for(r = 0; r < rounds; r++)
      * A seconda della struttura di: input, kernel e output è necessario selezionare la funzione corretta.
     */
 #ifdef DEBUG_PRINT
-    clean_vector<<<(unsigned int)((OUT_X * OUT_Y * OUT_Z * OUT_N) / min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024) + 1), min((OUT_X * OUT_Y * OUT_Z * OUT_N), 1024)>>>(dev_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+    clean_vector_dev<<<(unsigned int)(total_out_dim / min(total_out_dim, 1024) + 1), min(total_out_dim, 1024)>>>(dev_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+    clean_vector_host(host_output, OUT_N * OUT_X * OUT_Y * OUT_Z);
+    cudaDeviceSynchronize();
+    debug_print(host_output, dev_output, "debug_print.txt", f_res, OUT_X, OUT_Y, OUT_Z, OUT_N);
 #else
-    init_values(host_input, host_kernel, dev_input, dev_kernel, dev_output);
+    init_values(host_input, host_kernel, host_output, dev_input, dev_kernel, dev_output);
 #endif
+
+
     start_timer(&start);
     cudaProfilerStart();
     /***
@@ -186,10 +251,10 @@ for(r = 0; r < rounds; r++)
      * sulla stessa faccia d'uscita copio solo un kernel per blocco. La memoria condivisa che alloco dipenderà quindi da block.z
     */
     //Da usare nella Foreward
-    block = {(unsigned int)min(32, INPUT_X), (unsigned int)min(32, INPUT_Y), (unsigned int)(1024 / (min(32, INPUT_X) * min(32, INPUT_Y)))};
-    grid = {(unsigned int)ceil(((float)OUT_X / block.x)), (unsigned int)ceil(((float)OUT_Y / block.y)), (unsigned int)ceil((double)OUT_Z / block.z)};
-    shared_mem_dim = (INPUT_X * INPUT_Y * INPUT_Z + KERNEL_X * KERNEL_Z * KERNEL_Z * KERNEL_N) * sizeof(float);
-    convolution_3D_shared<<<grid, block, shared_mem_dim>>>(dev_input, dev_kernel, dev_output, INPUT_X, INPUT_Y, INPUT_Z, KERNEL_X, KERNEL_Y, KERNEL_Z, KERNEL_N, OUT_X, OUT_Y, OUT_Z);
+    // block = {(unsigned int)min(32, INPUT_X), (unsigned int)min(32, INPUT_Y), (unsigned int)(1024 / (min(32, INPUT_X) * min(32, INPUT_Y)))};
+    // grid = {(unsigned int)ceil(((float)OUT_X / block.x)), (unsigned int)ceil(((float)OUT_Y / block.y)), (unsigned int)ceil((float)OUT_Z / block.z)};
+    // shared_mem_dim = (INPUT_X * INPUT_Y * INPUT_Z + KERNEL_X * KERNEL_Z * KERNEL_Z * /*KERNEL_N*/block.x) * sizeof(float);
+    // convolution_3D_shared<<<grid, block, shared_mem_dim>>>(dev_input, dev_kernel, dev_output, INPUT_X, INPUT_Y, INPUT_Z, KERNEL_X, KERNEL_Y, KERNEL_Z, KERNEL_N, OUT_X, OUT_Y, OUT_Z);
 
     // Da usare nella Backward dove le uscite sono dF2, dF1, dF0
     // block = {(unsigned int)(INPUT_X * INPUT_Y), 1, (unsigned int)(1024 / (INPUT_X * INPUT_Y))};

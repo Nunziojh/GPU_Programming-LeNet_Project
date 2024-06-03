@@ -495,7 +495,7 @@ int main(){
 
             /****
              * Calcoliamo il secondo layer convolutivo a partire dall'uscita del layer di pooling precedente,
-             * le dimensioni di ingresso sono (14 x 14 x 6), usiamo 16 kernel di dimensioni (5 x 5) e otteniamo
+             * le dimensioni di ingresso sono (14 x 14 x 6), usiamo 16 kernel di dimensioni (5 x 5 x 6) e otteniamo
              * un valore di uscita, salvato nella variabile second_conv di dimensione (10 x 10 x 16).
             */
             in_h = out_h;

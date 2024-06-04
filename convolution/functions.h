@@ -6,6 +6,7 @@
 #include <cuda_profiler_api.h>
 #include <stdlib.h>
 #include <stdio.h>
+//comment
 
 #ifdef __linux__
 #include <sys/time.h>

@@ -1,5 +1,22 @@
 #include "monolithic.h"
 
+/**
+ * Versione monolitica della convoluzione 3D.
+ * Permette di colcorare la covoluzione tra una matrice d'ingresso e N matrici kernel, supponendo che abbiano tutte la stessa profondità.
+ * I(i, i, b, c) * K(k, k, b, n) = O(o, o, n, 1)
+ * Questa funzione viene utilizzata solamente nella fase di foreward della nostra rete.
+ * 
+ * La dimensione del blocco sugli assi x, y e z è pari al minimo tra 10 e le dimensioni spaziali della matrice d'uscita,
+ * in modo da non eccedere i 1000 thread per blocco, lavorando con matrici quadrate abbiamo deciso di mantenere la struttura del blocco quadrata
+ * a discapito di alcuni thread inutilizzati per ogni blocco. La dimensione della griglia è tale da coprire tutta la matrice
+ * d'uscita nel caso in cui questa ecceda 10 nelle tre dimensioni.
+ * 
+ * Dopo aver shiftato l'indice di inizio del kernel da usare in base alla z della matrice di uscita su cui stiamo lavorando, 
+ * iteriamo con tre cicli annidati per tutta la matrice kernel. Incrementiamo un registro contatore con il prodotto tra un valore dell'ingresso e uno del kernel.
+ * Alla fine assegnamo il valore alla matrice d'uscita. Controlliamo di non eccedere le diensioni della matrice d'ingresso solo sugli assi x e y perché sul terzo asse
+ * abbiamo lo stesso numero di valori.
+*/
+
 __global__ void convolution_3D(float *input, float *kernel, float *output, int in_width, int in_height, int in_depth, int ker_width, int ker_height, int ker_depth, int out_width, int out_height, int out_depth) {
     int ox = blockIdx.x * blockDim.x + threadIdx.x; //Numero di threads definiti in base alle dimensioni di uscita
     int oy = blockIdx.y * blockDim.y + threadIdx.y;
@@ -32,15 +49,28 @@ __global__ void convolution_3D(float *input, float *kernel, float *output, int i
     }
 }
 
+/**
+ * Versione monolitica della convoluzione 3D.
+ * Permette di colcorare la covoluzione tra una matrice d'ingresso e N matrici kernel.
+ * I(i, i, a, b) * K(k, k, 1, n) = O(o, o, a, n)
+ * Questa funzione viene utilizzata solamente nella fase di backward per calcolare le derivate dei kernel della nostra rete.
+ * 
+ * Usiamo l'asse x del blocco per iterare lungo gli assi x e y dell'uscita, l'asse y viene usato iterare lungo l'asse z dell'uscita e l'asse
+ * z del blocco viene usato per itarere su tutte le matrici d'uscita.
+ * La dimensione del blocco è quindi pari a: min(10, out_width * out_height), min(10, out_depth) e min(10, out_number),
+ * in modo da non eccedere i 1000 thread per blocco, lavorando con matrici quadrate abbiamo deciso di mantenere la struttura del blocco quadrata
+ * a discapito di alcuni thread inutilizzati per ogni blocco. La dimensione della griglia è tale da coprire tutta la matrice
+ * d'uscita nel caso in cui questa ecceda 10 nelle quattro dimensioni.
+ * 
+ * Dopo aver shiftato l'indice di inizio del kernel e dell'ingresso, 
+ * iteriamo con due cicli annidati per tutta la matrice kernel. Usiamo solamente due cicli annidati, non considerando la profondità del kernel
+ * perché nel nostro caso il kernel è sempre profondo uno sull'asse z. Incrementiamo un registro contatore con il prodotto tra un valore dell'ingresso e uno del kernel.
+ * Alla fine assegnamo il valore alla matrice d'uscita. Controlliamo di non eccedere le diensioni della matrice d'ingresso solo sugli assi x e y perché sul terzo asse
+ * abbiamo lo stesso numero di valori.
+*/
+
 __global__ void convolution_forNOutChannels(float *in, float *kernel, float *out, int in_w, int in_h, int in_d, int kernel_w, int kernel_h, int kernel_d, int out_w, int out_h, int out_d, int out_n)
 {
-    /***
-     * Il numero di threads viene definito in base alle dimensioni di uscita.
-     * La dimensione x del blocco viene calcolata come il prodotto tra le mensione x e y dell'uscita.
-     * La dimensione y del blocco è pari alla dimensione z dell'uscita.
-     * La dimensione z del blocco è pari al numero di matrici di uscita.
-     * Capire bene quanti sono i threads da assegnare ad ogni parte del blocco.
-    */
     int oxy = blockIdx.x * blockDim.x + threadIdx.x;
     int oz = blockIdx.y * blockDim.y + threadIdx.y;
     int on = blockIdx.z * blockDim.z + threadIdx.z;
@@ -68,9 +98,24 @@ __global__ void convolution_forNOutChannels(float *in, float *kernel, float *out
             }
         }
         out[(((on * out_d) + oz) * out_h + oy) * out_w + ox] = sum;
-        //out[(on * out_d * out_h * out_w) + (oz * out_h * out_w) + oy * out_w + ox] = sum;
     }
 }
+
+/**
+ * Versione monolitica della convoluzione 3D.
+ * Permette di colcorare la covoluzione tra una matrice d'ingresso e N matrici kernel.
+ * I(i, i, a, b) * K(k, k, 1, b) = O(o, o, a, 1)
+ * Questa funzione viene utilizzata solamente nella fase di backward per calcolare le derivate rispetto ai valori di ingresso delle convoluzioni.
+ * 
+ * La dimensione del blocco sugli assi x, y e z è pari al minimo tra 10 e le dimensioni spaziali della matrice d'uscita,
+ * in modo da non eccedere i 1000 thread per blocco, lavorando con matrici quadrate abbiamo deciso di mantenere la struttura del blocco quadrata
+ * a discapito di alcuni thread inutilizzati per ogni blocco. La dimensione della griglia è tale da coprire tutta la matrice
+ * d'uscita nel caso in cui questa ecceda 10 nelle tre dimensioni.
+ * 
+ * Una volta definiti gli indici d'inizio di lavoro della matrice di ingresso, considerando il padding, iteraimo sul numero di kernel e sulle due dimensioni spaziali x e y,
+ * non consideriamo l'asse z perché per la nostra applicazione i kernel sono sempre profondi 1. Controllando di non eccedere le dimensioni dell'ingresso calcoliamo il prodotto
+ * tra i valori del kernel e quelli dell'ingresso.
+*/
 
 __global__ void full_Convolution(float *input, float *kernel, float *output, int in_width, int in_height, int in_depth, int ker_width, int ker_height, int ker_depth, int ker_number, int out_width, int out_height, int out_depth, int padding) {
     int ox = blockIdx.x * blockDim.x + threadIdx.x; //Numero di threads definiti in base alle dimensioni di uscita

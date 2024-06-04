@@ -20,7 +20,7 @@
  * Prima di lavorare su una matrice quindi è necessario riazzerarne i valori.
 */
 
-__global__ void convolution_base(float *in, float *out, float *kernel, int in_dim, int out_dim, int kernel_dim, int padding_f/*, int stride_f*/){
+__global__ void convolution_base(float *in, float *out, float *kernel, int in_dim, int out_dim, int kernel_dim, int padding_f){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
 

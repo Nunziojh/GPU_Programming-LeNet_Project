@@ -152,9 +152,9 @@ for(r = 0; r < rounds; r++)
 #endif
     start_timer(&start);
     cudaProfilerStart();
-    block = {(unsigned int)min(32, max(OUT_X, INPUT_X)), (unsigned int)min(32, max(OUT_Y, INPUT_Y))};
-    grid = {(unsigned int)(max(OUT_X, INPUT_X) / block.x + 1), (unsigned int)( max(OUT_Y, INPUT_Y) / block.y + 1)};
-    shared_mem_dim = (INPUT_X * INPUT_Y + KERNEL_X * KERNEL_Y) * sizeof(float);
+    block = {(unsigned int)min(32, max(OUT_X, (INPUT_X + 2 * PADDING))), (unsigned int)min(32, max(OUT_Y, (INPUT_Y + 2 * PADDING)))};
+    grid = {(unsigned int)ceil((float)max(OUT_X, (INPUT_X + 2 * PADDING)) / block.x), (unsigned int)ceil((float)max(OUT_X, (INPUT_X + 2 * PADDING)) / block.y)};
+    shared_mem_dim = ((INPUT_X + 2 * PADDING) * (INPUT_Y + 2 * PADDING) + KERNEL_X * KERNEL_Y) * sizeof(float);
     
     //Foreward
     /*for(i = 0; i < OUT_Z; i++){
@@ -171,9 +171,6 @@ for(r = 0; r < rounds; r++)
     }*/
 
     //dA*
-    block = {(unsigned int)min(32, max(OUT_X, (INPUT_X + 2 * PADDING))), (unsigned int)min(32, max(OUT_Y, (INPUT_Y + 2 * PADDING)))};
-    grid = {(unsigned int)ceil((float)max(OUT_X, (INPUT_X + 2 * PADDING)) / block.x), (unsigned int)ceil((float)max(OUT_X, (INPUT_X + 2 * PADDING)) / block.y)};
-    shared_mem_dim = ((INPUT_X + 2 * PADDING) * (INPUT_Y + 2 * PADDING) + KERNEL_X * KERNEL_Y) * sizeof(float);
     for(i = 0; i < INPUT_N; i++){
         for(j = 0; j < OUT_Z; j++){
             convolution_optimized<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y + (i * INPUT_X * INPUT_Y * INPUT_Z)), dev_output + (j * OUT_X * OUT_Y), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X, PADDING);

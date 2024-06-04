@@ -80,14 +80,14 @@ __global__ void full_Convolution(float *input, float *kernel, float *output, int
     if (ox < out_width && oy < out_height && oz < out_depth)
     {
         float sum = 0.0f;
-        int kz, ky, kx;
+        int kn, ky, kx;
         float in_val, ker_val;
         input += (oz * in_height * in_width);
 
         int new_ox = ox - padding;
         int new_oy = oy - padding;
 
-        for(kz = 0; kz < ker_number; kz++)
+        for(kn = 0; kn < ker_number; kn++)
         {
             for(ky = 0; ky < ker_height; ky++)
             {
@@ -96,7 +96,6 @@ __global__ void full_Convolution(float *input, float *kernel, float *output, int
                     if((new_ox + kx) >= 0 && (new_ox + kx) < in_width && (new_oy + ky) >= 0 && (new_oy + ky) < in_height){
                         in_val = input[(new_oy + ky) * in_width + kx + new_ox];
                         ker_val = kernel[(ker_height * ker_width - 1) - (ky * ker_width + kx)];
-                        //ker_val = kernel[((new_oy + ky) * ker_width + new_ox + kx)];
                         sum += in_val * ker_val;
                     }
                 }

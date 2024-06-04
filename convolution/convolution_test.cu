@@ -45,6 +45,7 @@ int main(int argc, char **argv)
     
     dim3 block, grid;
     unsigned int shared_mem_dim;
+    int max_third_dim;
 
 for(r = 0; r < rounds; r++)
 {
@@ -113,21 +114,21 @@ for(r = 0; r < rounds; r++)
     //Foreward
     /*for(i = 0; i < OUT_Z; i++){
         for(j = 0; j < INPUT_Z; j++){
-            convolution_shared<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y), dev_output + (i * OUT_X * OUT_Y), dev_kernel + (j * KERNEL_X * KERNEL_Y + (i * KERNEL_X * KERNEL_Y * KERNEL_Z)), INPUT_X, OUT_X, KERNEL_X);
+            convolution_shared<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y), dev_output + (i * OUT_X * OUT_Y), dev_kernel + (j * KERNEL_X * KERNEL_Y + (i * KERNEL_X * KERNEL_Y * KERNEL_Z)), INPUT_X, OUT_X, KERNEL_X, PADDING);
         }
     }*/
 
     //dF*
     /*for(i = 0; i < OUT_N; i++){
         for(j = 0; j < OUT_Z; j++){
-            convolution_shared<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y), dev_output + (j * OUT_X * OUT_Y + (i * OUT_X * OUT_Y * OUT_Z)), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X);
+            convolution_shared<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y), dev_output + (j * OUT_X * OUT_Y + (i * OUT_X * OUT_Y * OUT_Z)), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X, PADDING);
         }
     }*/
 
     //dA*
     for(i = 0; i < INPUT_N; i++){
         for(j = 0; j < OUT_Z; j++){
-            convolution_shared<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y + (i * INPUT_X * INPUT_Y * INPUT_Z)), dev_output + (j * OUT_X * OUT_Y), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X);
+            convolution_shared<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y + (i * INPUT_X * INPUT_Y * INPUT_Z)), dev_output + (j * OUT_X * OUT_Y), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X, PADDING);
         }
     }
 
@@ -170,6 +171,9 @@ for(r = 0; r < rounds; r++)
     }*/
 
     //dA*
+    block = {(unsigned int)min(32, max(OUT_X, (INPUT_X + 2 * PADDING))), (unsigned int)min(32, max(OUT_Y, (INPUT_Y + 2 * PADDING)))};
+    grid = {(unsigned int)ceil((float)max(OUT_X, (INPUT_X + 2 * PADDING)) / block.x), (unsigned int)ceil((float)max(OUT_X, (INPUT_X + 2 * PADDING)) / block.y)};
+    shared_mem_dim = ((INPUT_X + 2 * PADDING) * (INPUT_Y + 2 * PADDING) + KERNEL_X * KERNEL_Y) * sizeof(float);
     for(i = 0; i < INPUT_N; i++){
         for(j = 0; j < OUT_Z; j++){
             convolution_optimized<<<grid, block, shared_mem_dim>>>(dev_input + (j * INPUT_X * INPUT_Y + (i * INPUT_X * INPUT_Y * INPUT_Z)), dev_output + (j * OUT_X * OUT_Y), dev_kernel + (i * KERNEL_X * KERNEL_Y), INPUT_X, OUT_X, KERNEL_X, PADDING);
@@ -251,9 +255,10 @@ for(r = 0; r < rounds; r++)
      * sulla stessa faccia d'uscita copio solo un kernel per blocco. La memoria condivisa che alloco dipenderà quindi da block.z
     */
     //Da usare nella Foreward
-    // block = {(unsigned int)min(32, INPUT_X), (unsigned int)min(32, INPUT_Y), (unsigned int)(1024 / (min(32, INPUT_X) * min(32, INPUT_Y)))};
+    // max_third_dim = (1024.0 * 48.0 / sizeof(float) - (INPUT_X * INPUT_Y * INPUT_Z)) / (KERNEL_X * KERNEL_Y * KERNEL_Z);
+    // shared_mem_dim = (INPUT_X * INPUT_Y * INPUT_Z + KERNEL_X * KERNEL_Y * KERNEL_Z * max_third_dim) * sizeof(float);
+    // block = {(unsigned int)min(32, INPUT_X), (unsigned int)min(32, INPUT_Y), (unsigned int)min(max_third_dim, (1024 / (min(32, INPUT_X) * min(32, INPUT_Y))))};
     // grid = {(unsigned int)ceil(((float)OUT_X / block.x)), (unsigned int)ceil(((float)OUT_Y / block.y)), (unsigned int)ceil((float)OUT_Z / block.z)};
-    // shared_mem_dim = (INPUT_X * INPUT_Y * INPUT_Z + KERNEL_X * KERNEL_Z * KERNEL_Z * /*KERNEL_N*/block.x) * sizeof(float);
     // convolution_3D_shared<<<grid, block, shared_mem_dim>>>(dev_input, dev_kernel, dev_output, INPUT_X, INPUT_Y, INPUT_Z, KERNEL_X, KERNEL_Y, KERNEL_Z, KERNEL_N, OUT_X, OUT_Y, OUT_Z);
 
     // Da usare nella Backward dove le uscite sono dF2, dF1, dF0

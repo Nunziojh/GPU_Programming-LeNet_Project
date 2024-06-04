@@ -17,7 +17,7 @@ __global__ void convolution_3D_shared(float *input, float *kernel, float *output
         }
     }
 
-    if(threadIdx.x < ker_width && threadIdx.y < ker_height && threadIdx.z < ker_depth)
+    if(threadIdx.x < ker_width && threadIdx.y < ker_height && threadIdx.z < ker_number)
     {
         for(int i = 0; i < KERNEL_Z; i++)
         {

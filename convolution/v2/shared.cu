@@ -27,7 +27,7 @@
  * Prima di lavorare su una matrice quindi è necessario riazzerarne i valori.
 */
 
-__global__ void convolution_shared(float *in, float *out, float *kernel, int in_dim, int out_dim, int kernel_dim/*, int padding_f, int stride_f*/){
+__global__ void convolution_shared(float *in, float *out, float *kernel, int in_dim, int out_dim, int kernel_dim, int padding){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
 
@@ -55,12 +55,17 @@ __global__ void convolution_shared(float *in, float *out, float *kernel, int in_
         float tmp = 0;
         float val;
 
-        data += idy * in_dim + idx;
+        int new_idx = idx - padding;
+        int new_idy = idy - padding;
+
+        data += new_idy * in_dim + new_idx;
 
         for(i = 0; i < kernel_dim; i++){
             for(j = 0; j < kernel_dim; j++){
-                val = data[j];
-                tmp += filter[j] * val;
+                if((new_idx + j) >= 0 && (new_idx + j) < in_dim && (new_idy + i) >= 0 && (new_idy + i) < in_dim){
+                    val = in[(new_idy + i) * in_dim + j + new_idx];
+                    tmp += val * kernel[(kernel_dim * kernel_dim - 1) - (i * kernel_dim + j)];
+                }
             }
             filter += kernel_dim;
             data += in_dim;

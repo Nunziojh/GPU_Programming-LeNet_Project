@@ -13,7 +13,7 @@ The network consists of 7 layers, including 3 convolutional layers, 2 subsamplin
 
 ### Implementation
 
-Our project is a from scratch project based on the paper "Gradient-Based Learning Applied to Document Recognition" [^1] and the article of Medium "LeNet-5 Complete Architecture" [^2].
+Our project is a from scratch project based on the paper "Gradient-Based Learning Applied to Document Recognition" [1](#bibliography) and the article of Medium "LeNet-5 Complete Architecture" [2](#bibliography).
 
 The implementation of the LeNet-5 network consists of two main parts: the forward pass and the backward pass. The forward pass is responsible for computing the output of the network given an input image, while the backward pass is responsible for computing the gradients of the network parameters with respect to the loss function. We adopted the gradient descent algorithm to update the weights of the network.
 
@@ -38,7 +38,7 @@ typedef struct mnist_data {
 Based on a compilation directive, the MNIST_DATA_TYPE can be chosen with different type of precision.
 In our code we used the float type and we convert the data dimensions from 28x28 to 32x32 to precisely follow the network model.
 
-For the forward we strictly followed all the layers of the network as described by the paper [^1]() while for the backward we calculated by hand all the derivatives with respect to the loss for each layer from the output to the input. We then calculate the parameters update based on the learning rate alfa. We found that the best results in the network training using a value for the hyperparamenter alfa of 0.01. The hyperparameters and the constant values used for the code are present in the header file `gpu_functions.h`.
+For the forward we strictly followed all the layers of the network as described by the paper [1](#bibliography) while for the backward we calculated by hand all the derivatives with respect to the loss for each layer from the output to the input. We then calculate the parameters update based on the learning rate alfa. We found that the best results in the network training using a value for the hyperparamenter alfa of 0.01. The hyperparameters and the constant values used for the code are present in the header file `gpu_functions.h`.
 
 At the end of the implementation part we obtained 90% of accuracy on test dataset of MNIST after 4 epochs of training.
 
@@ -125,20 +125,35 @@ The main optimization techniques we used are:
 
 
 ### Code analysis
+The main files of the project are: `backward.cu`, `gpu_functions.cu`, `gpu_functions.h`.
+
+**`backward.cu`**
+This file contains the complete implementation of the LeNet-5 architecture. It includes various compilation directives tailored to different usage requirements. All values are parameterized, and depending on the specific directives used, the values of the variables are defined accordingly. The compilation directives present are:
+* **NO COMPILATION DIRECTIVES**: if no compilation directive is used, training is performed. In this case will be taken for performing the training the files from the folder MNIST_Dataset: `train-images.idx3-ubyte` and `train-labels-idx1-ubyte`. Typically the value of epoch_dim and batch_dim are set respectively to 4 and 60,000.
+* **TEST**: compiling with the TEST directive only the forward is considered. The definition of `PARAMETER_FROM_FILE` is automatically defined because in this case they will be used the network parameters already trained saved in the file whose name is defined in `PARAMETER_FILE`. For the test part will be taken from the folder `MNIST_Dataset` the files: `t10k-images.idx3-ubyte` and `t10k-labels-idx1-ubyte`. The value of *epoch_dim* and *batch_dim* are set respectively to 1 and 10,000.
+* **TIME_TEST**: this directive was created to address the need for testing the execution time of the forward and backward passes. Specifically, the execution time will be measured and recorded in a file for *batch_dim* iterations, which is set generally to 1000. Subsequently, the average of these values will be calculated to provide a more reliable method for comparing different versions.
+* **USAGE**: this directive enables the compilation in a way that allows the use of the file `paint.py` to manually input a number and send it to the network. This directive permits using only the forward pass and utilizes the `PARAMETER_FROM_FILE` defined in `PARAMETER_FILE`. Unlike the *TEST* directive, it performs the prediction without having the correct label for comparison, and it sets *batch_dim* to 1.
+* **CHECK_PARAMETER_CORRECTNESS**: is a compilation directive used for debug the correctness of parameters taking from file or randomly generated.
 <!--
 (HOW WE IMPLEMENTED ALL THESE TECHINIQUES AND DIFFERENCES BETWEEN THE BASE CODE)
 EXPLAIN ALL THE DIRECTIVES USED, SUMMARIZED BACKWARD.CU
+EXPLAIN PAINT.PY??
 -->
 
 
 ### Results
+
+In the first phase of our project, implementing the LeNet-5 convolutional neural network from scratch, we achieved an accuracy of 90% on the MNIST test dataset after training for 4 epochs. This was accomplished using the TEST directive, which allowed us to validate the network's performance on unseen data.
+
+For the second phase, focused on optimization, we applied various techniques to enhance the efficiency of our CUDA implementation. Our optimized code demonstrated a significant improvement in performance. Specifically, the execution speed of the optimized version was 8 times faster compared to the base implementation. This substantial increase in speed was verified through detailed timing measurements, ensuring a reliable and consistent comparison between different versions of our implementation.
+
 <!--
 (SHOWING THE OUTPUT OF THE PROFILING WITH SOME PLOTS)
 -->
 
-#### Accuracy
+<!-- #### Accuracy -->
 
-#### Profiling
+<!-- #### Profiling-->
 
 ### Conclusion
 

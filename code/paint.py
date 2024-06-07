@@ -41,7 +41,8 @@ def save_image(canvas):
     n_values = 0
     with open("input_img.txt", "w") as file:
         for val in vector:
-            file.write("{0:0.2f}".format(val))
+            #file.write("{0:0.2f}".format(val))
+            file.write(f"{val:.16f}") 
             n_values += 1
             if n_values % 32 == 0:
                 file.write("\n")

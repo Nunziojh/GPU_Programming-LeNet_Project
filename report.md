@@ -13,7 +13,7 @@ The network consists of 7 layers, including 3 convolutional layers, 2 subsamplin
 
 ### Implementation
 
-Our project is a from scratch project based on the paper "Gradient-Based Learning Applied to Document Recognition" [1](#bibliography) and the article of Medium "LeNet-5 Complete Architecture" [2](#bibliography).
+Our project is a from scratch project based on the paper "Gradient-Based Learning Applied to Document Recognition" ([Article 1](#bibliography)) and the article of Medium "LeNet-5 Complete Architecture" ([Article 2](#bibliography)).
 
 The implementation of the LeNet-5 network consists of two main parts: the forward pass and the backward pass. The forward pass is responsible for computing the output of the network given an input image, while the backward pass is responsible for computing the gradients of the network parameters with respect to the loss function. We adopted the gradient descent algorithm to update the weights of the network.
 
@@ -136,9 +136,10 @@ This file contains the complete implementation of the LeNet-5 architecture. It i
 * **CHECK_PARAMETER_CORRECTNESS**: is a compilation directive used for debug the correctness of parameters taking from file or randomly generated.
 <!--
 (HOW WE IMPLEMENTED ALL THESE TECHINIQUES AND DIFFERENCES BETWEEN THE BASE CODE)
-EXPLAIN ALL THE DIRECTIVES USED, SUMMARIZED BACKWARD.CU
-EXPLAIN PAINT.PY??
 -->
+
+**`gpu_functions.cu`** and **`gpu_functions.h`**
+In gpu_functions.cu, the entire library of GPU functions created for the network is present. The prototypes of these functions are included in the corresponding header file, along with constants used in the code.
 
 
 ### Results

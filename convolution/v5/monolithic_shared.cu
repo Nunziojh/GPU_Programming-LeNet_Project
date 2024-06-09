@@ -1,4 +1,5 @@
-#include "monolithic_shared.h"
+#include <stdlib.h>
+#include <cuda_runtime.h>
 
 __global__ void convolution_3D_shared(float *input, float *kernel, float *output, int in_width, int in_height, int in_depth, int ker_width, int ker_height, int ker_depth, int ker_number, int out_width, int out_height, int out_depth) {
     int ox = blockIdx.x * blockDim.x + threadIdx.x;
@@ -19,9 +20,9 @@ __global__ void convolution_3D_shared(float *input, float *kernel, float *output
 
     if(threadIdx.x < ker_width && threadIdx.y < ker_height && threadIdx.z < ker_number)
     {
-        for(int i = 0; i < KERNEL_Z; i++)
+        for(int i = 0; i < ker_depth; i++)
         {
-            filter[threadIdx.z * (KERNEL_X * KERNEL_Y * KERNEL_Z) + i * (KERNEL_X * KERNEL_Y) + threadIdx.y * KERNEL_X + threadIdx.x] = kernel[oz * (KERNEL_X * KERNEL_Y * KERNEL_Z) + i * (KERNEL_X * KERNEL_Y) + threadIdx.y * KERNEL_X + threadIdx.x];
+            filter[threadIdx.z * (ker_width * ker_height * ker_depth) + i * (ker_width * ker_height) + threadIdx.y * ker_width + threadIdx.x] = kernel[oz * (ker_width * ker_height * ker_depth) + i * (ker_width * ker_height) + threadIdx.y * ker_width + threadIdx.x];
         }
         /*for(int j = 0; j < blockDim.z && (j + blockIdx.z * blockDim.z) < ker_number; j++)
         {

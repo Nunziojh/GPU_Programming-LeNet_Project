@@ -1,4 +1,5 @@
-#include "optimized.h"
+#include <stdlib.h>
+#include <cuda_runtime.h>
 
 /**
  * Versione ottimizzata dell'uso della memoria condivisa.

@@ -1,4 +1,5 @@
-#include "monolithic.h"
+#include <stdlib.h>
+#include <cuda_runtime.h>
 
 /**
  * Versione monolitica della convoluzione 3D.

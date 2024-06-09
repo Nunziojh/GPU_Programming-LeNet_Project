@@ -1,4 +1,5 @@
-#include "shared.h"
+#include <stdlib.h>
+#include <cuda_runtime.h>
 
 /**
  * Versione con shared memory della convoluzione.

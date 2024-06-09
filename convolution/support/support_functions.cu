@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <cuda_runtime.h>
 #include "support_functions.h"
 
 __global__ void clean_vector_dev(float *m, int dim){

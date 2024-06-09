@@ -1,4 +1,5 @@
-#include "base.h"
+#include <cuda_runtime.h>
+#include <stdlib.h>
 
 /**
  * Versione base della convoluzione.

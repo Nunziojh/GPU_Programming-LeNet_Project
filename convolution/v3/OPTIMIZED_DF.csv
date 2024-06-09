@@ -1,0 +1,9 @@
+==4020== NVPROF is profiling process 4020, command: runnable.exe
+==4020== Profiling application: runnable.exe
+==4020== Profiling result:
+"Type","Time(%)","Time","Calls","Avg","Min","Max","Name"
+,%,us,,us,us,us,
+"GPU activities",100.000000,373.218000,96,3.887000,3.839000,4.449000,"convolution_optimized(float*, float*, float*, int, int, int, int)"
+"API calls",99.435619,3136.100000,96,32.667000,19.700000,868.800000,"cudaLaunchKernel"
+"API calls",0.516820,16.300000,1,16.300000,16.300000,16.300000,"cudaDeviceSynchronize"
+"API calls",0.047560,1.500000,1,1.500000,1.500000,1.500000,"cuDeviceGetCount"

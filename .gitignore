@@ -1,3 +1,4 @@
 matrix_product/
 pooling/
 out_test_dir/
+*.obj

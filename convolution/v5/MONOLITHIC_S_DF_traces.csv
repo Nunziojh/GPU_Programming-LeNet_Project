@@ -1,0 +1,9 @@
+==7596== NVPROF is profiling process 7596, command: runnable.exe
+==7596== Profiling application: runnable.exe
+==7596== Profiling result:
+"Start","Duration","Grid X","Grid Y","Grid Z","Block X","Block Y","Block Z","Registers Per Thread","Static SMem","Dynamic SMem","Device","Context","Stream","Name","Correlation_ID"
+ms,us,,,,,,,,B,KB,,,,,
+144.451300,1.100000,,,,,,,,,,,,,"cuDeviceGetCount",2
+417.574500,861.900000,,,,,,,,,,,,,"cudaLaunchKernel",3
+418.429879,36.383000,1,6,4,196,1,5,27,0,2.718750,"NVIDIA GeForce MX250 (0)","1","7","convolution_forNOutChannels_shared(float*, float*, float*, int, int, int, int, int, int, int, int, int, int, int)",3
+418.437300,40.400000,,,,,,,,,,,,,"cudaDeviceSynchronize",4

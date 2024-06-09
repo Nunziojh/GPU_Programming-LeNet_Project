@@ -1,0 +1,19 @@
+==21588== NVPROF is profiling process 21588, command: runnable.exe
+==21588== Profiling application: runnable.exe
+==21588== Profiling result:
+"Start","Duration","Grid X","Grid Y","Grid Z","Block X","Block Y","Block Z","Registers Per Thread","Static SMem","Dynamic SMem","Device","Context","Stream","Name","Correlation_ID"
+ms,us,,,,,,,,B,KB,,,,,
+161.857800,1.700000,,,,,,,,,,,,,"cuDeviceGetCount",2
+457.370000,734.900000,,,,,,,,,,,,,"cudaLaunchKernel",3
+458.095669,5.088000,2,2,1,32,32,1,27,0,4.097656,"NVIDIA GeForce MX250 (0)","1","7","convolution_shared(float*, float*, float*, int, int, int, int)",3
+458.107200,23.400000,,,,,,,,,,,,,"cudaLaunchKernel",4
+458.128084,4.800000,2,2,1,32,32,1,27,0,4.097656,"NVIDIA GeForce MX250 (0)","1","7","convolution_shared(float*, float*, float*, int, int, int, int)",4
+458.131400,13.500000,,,,,,,,,,,,,"cudaLaunchKernel",5
+458.143892,4.672000,2,2,1,32,32,1,27,0,4.097656,"NVIDIA GeForce MX250 (0)","1","7","convolution_shared(float*, float*, float*, int, int, int, int)",5
+458.145400,11.900000,,,,,,,,,,,,,"cudaLaunchKernel",6
+458.156852,4.768000,2,2,1,32,32,1,27,0,4.097656,"NVIDIA GeForce MX250 (0)","1","7","convolution_shared(float*, float*, float*, int, int, int, int)",6
+458.157800,11.700000,,,,,,,,,,,,,"cudaLaunchKernel",7
+458.168787,4.833000,2,2,1,32,32,1,27,0,4.097656,"NVIDIA GeForce MX250 (0)","1","7","convolution_shared(float*, float*, float*, int, int, int, int)",7
+458.169900,11.600000,,,,,,,,,,,,,"cudaLaunchKernel",8
+458.180691,4.896000,2,2,1,32,32,1,27,0,4.097656,"NVIDIA GeForce MX250 (0)","1","7","convolution_shared(float*, float*, float*, int, int, int, int)",8
+458.182100,14.000000,,,,,,,,,,,,,"cudaDeviceSynchronize",9

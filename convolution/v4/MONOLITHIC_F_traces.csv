@@ -1,0 +1,9 @@
+==22900== NVPROF is profiling process 22900, command: runnable.exe
+==22900== Profiling application: runnable.exe
+==22900== Profiling result:
+"Start","Duration","Grid X","Grid Y","Grid Z","Block X","Block Y","Block Z","Registers Per Thread","Static SMem","Dynamic SMem","Device","Context","Stream","Name","Correlation_ID"
+ms,us,,,,,,,,B,B,,,,,
+126.541500,1.100000,,,,,,,,,,,,,"cuDeviceGetCount",2
+351.809400,892.600000,,,,,,,,,,,,,"cudaLaunchKernel",3
+352.696852,12.608000,3,3,1,10,10,6,40,0,0,"NVIDIA GeForce MX250 (0)","1","7","convolution_3D(float*, float*, float*, int, int, int, int, int, int, int, int, int)",3
+352.703000,30.000000,,,,,,,,,,,,,"cudaDeviceSynchronize",4

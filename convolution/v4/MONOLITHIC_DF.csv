@@ -1,0 +1,9 @@
+==24124== NVPROF is profiling process 24124, command: runnable.exe
+==24124== Profiling application: runnable.exe
+==24124== Profiling result:
+"Type","Time(%)","Time","Calls","Avg","Min","Max","Name"
+,%,us,,us,us,us,
+"GPU activities",100.000000,18.688000,1,18.688000,18.688000,18.688000,"convolution_forNOutChannels(float*, float*, float*, int, int, int, int, int, int, int, int, int, int)"
+"API calls",97.556291,914.200000,1,914.200000,914.200000,914.200000,"cudaLaunchKernel"
+"API calls",2.304983,21.600000,1,21.600000,21.600000,21.600000,"cudaDeviceSynchronize"
+"API calls",0.138726,1.300000,1,1.300000,1.300000,1.300000,"cuDeviceGetCount"

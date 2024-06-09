@@ -1,0 +1,9 @@
+==1060== NVPROF is profiling process 1060, command: runnable.exe
+==1060== Profiling application: runnable.exe
+==1060== Profiling result:
+"Type","Time(%)","Time","Calls","Avg","Min","Max","Name"
+,%,us,,us,us,us,
+"GPU activities",100.000000,418.559000,96,4.359000,4.255000,5.024000,"convolution_optimized(float*, float*, float*, int, int, int, int)"
+"API calls",99.303430,2238.200000,96,23.314000,12.500000,798.200000,"cudaLaunchKernel"
+"API calls",0.634456,14.300000,1,14.300000,14.300000,14.300000,"cudaDeviceSynchronize"
+"API calls",0.062115,1.400000,1,1.400000,1.400000,1.400000,"cuDeviceGetCount"

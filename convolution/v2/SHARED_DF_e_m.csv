@@ -1,0 +1,251 @@
+==15964== NVPROF is profiling process 15964, command: runnable.exe
+==15964== Some kernel(s) will be replayed on device 0 in order to collect all events/metrics.
+==15964== Profiling application: runnable.exe
+==15964== Profiling result:
+==15964== Event result:
+"Device","Kernel","Invocations","Event Name","Min","Max","Avg","Total"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"tex0_cache_sector_queries",30,2054,935,89822
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"tex1_cache_sector_queries",30,2054,1147,110170
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"tex0_cache_sector_misses",16,1077,524,50306
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"tex1_cache_sector_misses",16,1077,571,54910
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"fb_subp0_read_sectors",0,88,1,96
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"fb_subp1_read_sectors",0,40,0,44
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"fb_subp0_write_sectors",0,8,0,50
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"fb_subp1_write_sectors",0,4,0,16
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp0_write_sector_misses",0,4,0,18
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp1_write_sector_misses",0,8,0,48
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp0_read_sector_misses",0,64,0,68
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp1_read_sector_misses",0,64,0,72
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp0_read_tex_sector_queries",470,607,534,51300
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp1_read_tex_sector_queries",482,613,551,52944
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp0_write_tex_sector_queries",0,5,2,238
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp1_write_tex_sector_queries",0,5,2,230
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp0_read_tex_hit_sectors",470,607,534,51300
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp1_read_tex_hit_sectors",482,613,551,52944
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp0_write_tex_hit_sectors",0,5,2,238
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp1_write_tex_hit_sectors",0,5,2,230
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp0_total_read_sector_queries",550,891,781,75003
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp1_total_read_sector_queries",490,690,578,55515
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp0_total_write_sector_queries",13,18,15,1486
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp1_total_write_sector_queries",0,5,2,230
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp0_read_sysmem_sector_queries",70,263,222,21397
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp1_read_sysmem_sector_queries",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp0_write_sysmem_sector_queries",5,5,5,480
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_subp1_write_sysmem_sector_queries",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"elapsed_cycles_sm",37191,65886,41009,3936876
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gld_inst_8bit",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gld_inst_16bit",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gld_inst_32bit",5321,5321,5321,510816
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gld_inst_64bit",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gld_inst_128bit",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gst_inst_8bit",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gst_inst_16bit",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gst_inst_32bit",25,25,25,2400
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gst_inst_64bit",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gst_inst_128bit",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"prof_trigger_00",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"prof_trigger_01",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"prof_trigger_02",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"prof_trigger_03",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"prof_trigger_04",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"prof_trigger_05",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"prof_trigger_06",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"prof_trigger_07",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"warps_launched",28,28,28,2688
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_issued0",24355,35374,26361,2530667
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_issued1",3734,3740,3734,358474
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_issued2",410,410,410,39360
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed",4470,4470,4470,429120
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"thread_inst_executed",78008,78010,78008,7488852
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"not_predicated_off_thread_inst_executed",58580,58580,58580,5623680
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"active_cycles",12302,16482,13086,1256349
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"active_warps",40508,50614,43416,4167952
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"global_load",498,498,498,47808
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"global_store",2,2,2,192
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"generic_load",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"generic_store",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_in_trap",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"active_cycles_in_trap",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"local_store",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"local_load",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_load",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_store",56,56,56,5376
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_shared_atom_cas",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_atom",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"global_atom_cas",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"atom_count",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gred_count",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"divergent_branch",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"branch",152,152,152,14592
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_ld_bank_conflict",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_st_bank_conflict",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_ld_transactions",0,0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_st_transactions",12,12,12,1152
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"active_cycles_pm",12323,16182,13080,1255696
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"active_warps_pm",40518,56340,43749,4199962
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"elapsed_cycles_pm",37140,66285,41295,3964326
+
+==15964== Metric result:
+"Device","Kernel","Invocations","Metric Name","Metric Description","Min","Max","Avg"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_per_warp","Instructions per warp",159.642857,159.642857,159.642857
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"branch_efficiency","Branch Efficiency",100.000000%,100.000000%,100.000000%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"warp_execution_efficiency","Warp Execution Efficiency",54.535794%,54.537192%,54.536406%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"warp_nonpred_execution_efficiency","Warp Non-Predicated Execution Efficiency",40.953579%,40.953579%,40.953579%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_replay_overhead","Instruction Replay Overhead",0.018345,0.020134,0.018822
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_load_transactions_per_request","Shared Memory Load Transactions Per Request",0.000000,0.000000,0.000000
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_store_transactions_per_request","Shared Memory Store Transactions Per Request",0.214286,0.214286,0.214286
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"local_load_transactions_per_request","Local Memory Load Transactions Per Request",0.000000,0.000000,0.000000
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"local_store_transactions_per_request","Local Memory Store Transactions Per Request",0.000000,0.000000,0.000000
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gld_transactions_per_request","Global Load Transactions Per Request",13.265060,13.265060,13.265060
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gst_transactions_per_request","Global Store Transactions Per Request",2.000000,2.500000,2.437500
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_store_transactions","Shared Store Transactions",12,12,12
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_load_transactions","Shared Load Transactions",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"local_load_transactions","Local Load Transactions",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"local_store_transactions","Local Store Transactions",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gld_transactions","Global Load Transactions",6606,6606,6606
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gst_transactions","Global Store Transactions",4,5,4
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"sysmem_read_transactions","System Memory Read Transactions",0,1,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"sysmem_write_transactions","System Memory Write Transactions",5,5,5
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_read_transactions","L2 Read Transactions",1170,1547,1359
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_write_transactions","L2 Write Transactions",17,18,17
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"global_hit_rate","Global Hit Rate in unified l1/tex",0.000000%,0.000000%,0.000000%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"local_hit_rate","Local Hit Rate",0.000000%,0.000000%,0.000000%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gld_requested_throughput","Requested Global Load Throughput",145.800286MB/s,998.457844MB/s,171.077107MB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gst_requested_throughput","Requested Global Store Throughput",1.206556MB/s,8.262643MB/s,1.415718MB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gld_throughput","Global Load Throughput",418.144217MB/s,2.796388GB/s,491.938733MB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gst_throughput","Global Store Throughput",1.554026MB/s,13.220229MB/s,2.208529MB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"local_memory_overhead","Local Memory Overhead",0.000000%,0.000000%,0.000000%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"tex_cache_hit_rate","Unified Cache Hit Rate",47.406340%,47.936660%,47.641901%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_tex_read_hit_rate","L2 Hit Rate (Texture Reads)",100.000000%,100.000000%,100.000000%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_tex_write_hit_rate","L2 Hit Rate (Texture Writes)",100.000000%,100.000000%,100.000000%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"tex_cache_throughput","Unified Cache Throughput",637.447925MB/s,4.263008GB/s,747.959808MB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_tex_read_throughput","L2 Throughput (Texture Reads)",418.144217MB/s,2.796388GB/s,491.938733MB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_tex_write_throughput","L2 Throughput (Texture Writes)",1.554026MB/s,13.220229MB/s,2.208529MB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_read_throughput","L2 Throughput (Reads)",522.776796MB/s,3.093786GB/s,615.928591MB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_write_throughput","L2 Throughput (Writes)",6.604610MB/s,47.592826MB/s,8.097976MB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"sysmem_read_throughput","System Memory Read Throughput",0.000000B/s,2.644046MB/s,314.093750KB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"sysmem_write_throughput","System Memory Write Throughput",1.930490MB/s,13.220229MB/s,2.265158MB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"local_load_throughput","Local Memory Load Throughput",0.000000B/s,0.000000B/s,0.000000B/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"local_store_throughput","Local Memory Store Throughput",0.000000B/s,0.000000B/s,0.000000B/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_load_throughput","Shared Memory Load Throughput",0.000000B/s,0.000000B/s,0.000000B/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_store_throughput","Shared Memory Store Throughput",18.532707MB/s,126.914205MB/s,21.745637MB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gld_efficiency","Global Memory Load Efficiency",34.644495%,34.932932%,34.776501%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"gst_efficiency","Global Memory Store Efficiency",62.500000%,78.125000%,64.453125%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"tex_cache_transactions","Unified Cache Transactions",1651,1651,1651
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_dp","Floating Point Operations(Double Precision)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_dp_add","Floating Point Operations(Double Precision Add)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_dp_fma","Floating Point Operations(Double Precision FMA)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_dp_mul","Floating Point Operations(Double Precision Mul)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_sp","Floating Point Operations(Single Precision)",5025,5025,5025
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_sp_add","Floating Point Operations(Single Precision Add)",25,25,25
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_sp_fma","Floating Point Operations(Single Precision FMA)",2500,2500,2500
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_sp_mul","Floating Point Operation(Single Precision Mul)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_sp_special","Floating Point Operations(Single Precision Special)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed","Instructions Executed",4470,4470,4470
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_issued","Instructions Issued",4554,4560,4554
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"sysmem_utilization","System Memory Utilization","Low (1)","Low (1)","Low (1)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"stall_inst_fetch","Issue Stall Reasons (Instructions Fetch)",5.639023%,15.263860%,9.808825%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"stall_exec_dependency","Issue Stall Reasons (Execution Dependency)",20.094880%,28.718716%,26.606437%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"stall_memory_dependency","Issue Stall Reasons (Data Request)",29.682592%,39.783849%,33.077478%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"stall_texture","Issue Stall Reasons (Texture)",0.000000%,0.000000%,0.000000%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"stall_sync","Issue Stall Reasons (Synchronization)",4.622689%,7.088423%,6.298893%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"stall_other","Issue Stall Reasons (Other)",2.987352%,6.066126%,4.412558%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"stall_constant_memory_dependency","Issue Stall Reasons (Immediate constant)",15.344560%,21.024735%,17.077973%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"stall_pipe_busy","Issue Stall Reasons (Pipe Busy)",1.114845%,1.664504%,1.520380%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_efficiency","Shared Memory Efficiency",77.083333%,77.083333%,77.083333%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_fp_32","FP Instructions(Single)",2525,2525,2525
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_fp_64","FP Instructions(Double)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_integer","Integer Instructions",35230,35230,35230
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_bit_convert","Bit-Convert Instructions",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_control","Control-Flow Instructions",1259,1259,1259
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_compute_ld_st","Load/Store Instructions",6426,6426,6426
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_misc","Misc Instructions",13140,13140,13140
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_inter_thread_communication","Inter-Thread Instructions",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"issue_slots","Issue Slots",4144,4150,4144
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"cf_issued","Issued Control-Flow Instructions",152,152,152
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"cf_executed","Executed Control-Flow Instructions",152,152,152
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"ldst_issued","Issued Load/Store Instructions",1883,1883,1883
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"ldst_executed","Executed Load/Store Instructions",752,752,752
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"atomic_transactions","Atomic Transactions",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"atomic_transactions_per_request","Atomic Transactions Per Request",0.000000,0.000000,0.000000
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_atomic_throughput","L2 Throughput (Atomic requests)",0.000000B/s,0.000000B/s,0.000000B/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_atomic_transactions","L2 Transactions (Atomic requests)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_tex_read_transactions","L2 Transactions (Texture Reads)",1081,1090,1085
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"stall_memory_throttle","Issue Stall Reasons (Memory Throttle)",0.075231%,0.112848%,0.102191%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"stall_not_selected","Issue Stall Reasons (Not Selected)",0.826496%,1.192557%,1.095266%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_tex_write_transactions","L2 Transactions (Texture Writes)",4,5,4
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_hp","Floating Point Operations(Half Precision)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_hp_add","Floating Point Operations(Half Precision Add)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_hp_mul","Floating Point Operation(Half Precision Mul)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_count_hp_fma","Floating Point Operations(Half Precision FMA)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_fp_16","HP Instructions(Half)",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"sysmem_read_utilization","System Memory Read Utilization","Idle (0)","Low (1)","Idle (0)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"sysmem_write_utilization","System Memory Write Utilization","Low (1)","Low (1)","Low (1)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"pcie_total_data_transmitted","PCIe Total Data Transmitted",0,512,261
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"pcie_total_data_received","PCIe Total Data Received",0,512,90
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_global_loads","Warp level instructions for global loads",498,498,498
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_local_loads","Warp level instructions for local loads",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_shared_loads","Warp level instructions for shared loads",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_surface_loads","Warp level instructions for surface loads",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_global_stores","Warp level instructions for global stores",2,2,2
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_local_stores","Warp level instructions for local stores",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_shared_stores","Warp level instructions for shared stores",56,56,56
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_surface_stores","Warp level instructions for surface stores",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_global_atomics","Warp level instructions for global atom and atom cas",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_global_reductions","Warp level instructions for global reductions",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_surface_atomics","Warp level instructions for surface atom and atom cas",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_surface_reductions","Warp level instructions for surface reductions",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_shared_atomics","Warp level shared instructions for atom and atom CAS",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"inst_executed_tex_ops","Warp level instructions for texture",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_global_load_bytes","Bytes read from L2 for misses in Unified Cache for global loads",34592,34880,34748
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_local_load_bytes","Bytes read from L2 for misses in Unified Cache for local loads",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_surface_load_bytes","Bytes read from L2 for misses in Unified Cache for surface loads",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_local_global_store_bytes","Bytes written to L2 from Unified Cache for local and global stores.",128,160,156
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_global_reduction_bytes","Bytes written to L2 from Unified cache for global reductions",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_global_atomic_store_bytes","Bytes written to L2 from Unified cache for global atomics",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_surface_store_bytes","Bytes written to L2 from Unified Cache for surface stores.",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_surface_reduction_bytes","Bytes written to L2 from Unified Cache for surface reductions",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_surface_atomic_store_bytes","Bytes transferred between Unified Cache and L2 for surface atomics",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"global_load_requests","Total number of global load requests from Multiprocessor",1651,1651,1651
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"local_load_requests","Total number of local load requests from Multiprocessor",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"surface_load_requests","Total number of surface load requests from Multiprocessor",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"global_store_requests","Total number of global store requests from Multiprocessor",8,8,8
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"local_store_requests","Total number of local store requests from Multiprocessor",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"surface_store_requests","Total number of surface store requests from Multiprocessor",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"global_atomic_requests","Total number of global atomic requests from Multiprocessor",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"global_reduction_requests","Total number of global reduction requests from Multiprocessor",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"surface_atomic_requests","Total number of surface atomic requests from Multiprocessor",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"surface_reduction_requests","Total number of surface reduction requests from Multiprocessor",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"sysmem_read_bytes","System Memory Read Bytes",0,32,21
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"sysmem_write_bytes","System Memory Write Bytes",160,160,160
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_tex_hit_rate","L2 Cache Hit Rate",100.000000%,100.000000%,100.000000%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"texture_load_requests","Total number of texture Load requests from Multiprocessor",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"unique_warps_launched","Number of warps launched",28,28,28
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"sm_efficiency","Multiprocessor Activity",23.632684%,33.838581%,32.145243%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"achieved_occupancy","Achieved Occupancy",0.050411,0.054288,0.052064
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"ipc","Executed IPC",0.284931,0.363267,0.345938
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"issued_ipc","Issued IPC",0.280332,0.369703,0.351161
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"issue_slot_utilization","Issue Slot Utilization",6.377347%,8.410456%,7.988665%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"eligible_warps_per_cycle","Eligible Warps Per Active Cycle",0.280825,0.370316,0.349107
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"tex_utilization","Unified Cache Utilization","Low (1)","Low (1)","Low (1)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"l2_utilization","L2 Cache Utilization","Low (1)","Low (1)","Low (1)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"shared_utilization","Shared Memory Utilization","Low (1)","Low (1)","Low (1)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"ldst_fu_utilization","Load/Store Function Unit Utilization","Low (1)","Low (1)","Low (1)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"cf_fu_utilization","Control-Flow Function Unit Utilization","Low (1)","Low (1)","Low (1)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"special_fu_utilization","Special Function Unit Utilization","Idle (0)","Idle (0)","Idle (0)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"tex_fu_utilization","Texture Function Unit Utilization","Low (1)","Low (1)","Low (1)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"single_precision_fu_utilization","Single-Precision Function Unit Utilization","Low (1)","Low (1)","Low (1)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"double_precision_fu_utilization","Double-Precision Function Unit Utilization","Idle (0)","Idle (0)","Idle (0)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_hp_efficiency","FLOP Efficiency(Peak Half)",0.000000%,0.000000%,0.000000%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_sp_efficiency","FLOP Efficiency(Peak Single)",0.029792%,0.052779%,0.048945%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"flop_dp_efficiency","FLOP Efficiency(Peak Double)",0.000000%,0.000000%,0.000000%
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"dram_read_transactions","Device Memory Read Transactions",0,128,1
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"dram_write_transactions","Device Memory Write Transactions",0,8,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"dram_read_throughput","Device Memory Read Throughput",0.000000B/s,50.615484MB/s,676.530273KB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"dram_write_throughput","Device Memory Write Throughput",0.000000B/s,3.169957MB/s,318.933594KB/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"dram_utilization","Device Memory Utilization","Idle (0)","Low (1)","Idle (0)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"half_precision_fu_utilization","Half-Precision Function Unit Utilization","Idle (0)","Idle (0)","Idle (0)"
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"ecc_transactions","ECC Transactions",0,0,0
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"ecc_throughput","ECC Throughput",0.000000B/s,0.000000B/s,0.000000B/s
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"dram_read_bytes","Total bytes read from DRAM to L2 cache",0,4096,46
+"NVIDIA GeForce MX250 (0)","convolution_shared(float*, float*, float*, int, int, int, int)",96,"dram_write_bytes","Total bytes written from L2 cache to DRAM",0,256,22

@@ -1,0 +1,199 @@
+==16332== NVPROF is profiling process 16332, command: runnable.exe
+==16332== Profiling application: runnable.exe
+==16332== Profiling result:
+"Start","Duration","Grid X","Grid Y","Grid Z","Block X","Block Y","Block Z","Registers Per Thread","Static SMem","Dynamic SMem","Device","Context","Stream","Name","Correlation_ID"
+ms,us,,,,,,,,B,KB,,,,,
+125.699900,1.200000,,,,,,,,,,,,,"cuDeviceGetCount",2
+399.749400,737.900000,,,,,,,,,,,,,"cudaLaunchKernel",3
+400.480464,5.056000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",3
+400.488800,15.500000,,,,,,,,,,,,,"cudaLaunchKernel",4
+400.502895,4.448000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",4
+400.504900,12.600000,,,,,,,,,,,,,"cudaLaunchKernel",5
+400.516399,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",5
+400.518000,11.700000,,,,,,,,,,,,,"cudaLaunchKernel",6
+400.528943,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",6
+400.530200,20.500000,,,,,,,,,,,,,"cudaLaunchKernel",7
+400.549838,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",7
+400.551100,11.400000,,,,,,,,,,,,,"cudaLaunchKernel",8
+400.561710,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",8
+400.563000,11.700000,,,,,,,,,,,,,"cudaLaunchKernel",9
+400.573902,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",9
+400.575200,19.500000,,,,,,,,,,,,,"cudaLaunchKernel",10
+400.593998,4.448000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",10
+400.595200,11.200000,,,,,,,,,,,,,"cudaLaunchKernel",11
+400.605742,4.287000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",11
+400.606900,11.200000,,,,,,,,,,,,,"cudaLaunchKernel",12
+400.617326,4.447000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",12
+400.618600,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",13
+400.629069,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",13
+400.630200,10.800000,,,,,,,,,,,,,"cudaLaunchKernel",14
+400.640301,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",14
+400.641500,11.200000,,,,,,,,,,,,,"cudaLaunchKernel",15
+400.652141,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",15
+400.653200,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",16
+400.663437,4.383000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",16
+400.664600,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",17
+400.674893,4.319000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",17
+400.676100,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",18
+400.686348,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",18
+400.687500,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",19
+400.697868,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",19
+400.698900,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",20
+400.709132,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",20
+400.710300,11.300000,,,,,,,,,,,,,"cudaLaunchKernel",21
+400.721068,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",21
+400.722000,10.800000,,,,,,,,,,,,,"cudaLaunchKernel",22
+400.732235,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",22
+400.733300,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",23
+400.743692,4.287000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",23
+400.744800,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",24
+400.755019,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",24
+400.756300,23.100000,,,,,,,,,,,,,"cudaLaunchKernel",25
+400.778347,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",25
+400.779900,11.500000,,,,,,,,,,,,,"cudaLaunchKernel",26
+400.790698,4.417000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",26
+400.791900,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",27
+400.802282,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",27
+400.803500,19.500000,,,,,,,,,,,,,"cudaLaunchKernel",28
+400.822346,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",28
+400.823400,11.200000,,,,,,,,,,,,,"cudaLaunchKernel",29
+400.833994,4.320000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",29
+400.835100,10.800000,,,,,,,,,,,,,"cudaLaunchKernel",30
+400.845001,4.417000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",30
+400.846300,24.000000,,,,,,,,,,,,,"cudaLaunchKernel",31
+400.869385,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",31
+400.870700,11.400000,,,,,,,,,,,,,"cudaLaunchKernel",32
+400.881289,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",32
+400.882600,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",33
+400.892905,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",33
+400.894000,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",34
+400.904329,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",34
+400.905600,10.700000,,,,,,,,,,,,,"cudaLaunchKernel",35
+400.915593,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",35
+400.916700,20.000000,,,,,,,,,,,,,"cudaLaunchKernel",36
+400.936040,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",36
+400.937100,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",37
+400.947624,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",37
+400.948500,10.700000,,,,,,,,,,,,,"cudaLaunchKernel",38
+400.958568,4.415000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",38
+400.959700,21.100000,,,,,,,,,,,,,"cudaLaunchKernel",39
+400.980359,4.289000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",39
+400.981200,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",40
+400.991431,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",40
+400.992600,10.700000,,,,,,,,,,,,,"cudaLaunchKernel",41
+401.002631,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",41
+401.003800,24.100000,,,,,,,,,,,,,"cudaLaunchKernel",42
+401.026887,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",42
+401.028300,11.400000,,,,,,,,,,,,,"cudaLaunchKernel",43
+401.038982,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",43
+401.040200,10.800000,,,,,,,,,,,,,"cudaLaunchKernel",44
+401.050214,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",44
+401.051400,19.800000,,,,,,,,,,,,,"cudaLaunchKernel",45
+401.070598,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",45
+401.071600,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",46
+401.081990,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",46
+401.083200,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",47
+401.093638,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",47
+401.094800,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",48
+401.105157,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",48
+401.106400,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",49
+401.116581,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",49
+401.117700,11.200000,,,,,,,,,,,,,"cudaLaunchKernel",50
+401.128229,4.448000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",50
+401.129400,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",51
+401.139909,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",51
+401.140800,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",52
+401.151077,4.415000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",52
+401.152400,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",53
+401.162692,4.320000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",53
+401.163900,11.300000,,,,,,,,,,,,,"cudaLaunchKernel",54
+401.174500,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",54
+401.175700,11.800000,,,,,,,,,,,,,"cudaLaunchKernel",55
+401.186244,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",55
+401.187900,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",56
+401.198276,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",56
+401.199400,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",57
+401.209732,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",57
+401.210900,10.800000,,,,,,,,,,,,,"cudaLaunchKernel",58
+401.220996,4.415000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",58
+401.222100,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",59
+401.232291,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",59
+401.233500,21.500000,,,,,,,,,,,,,"cudaLaunchKernel",60
+401.254243,4.448000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",60
+401.255400,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",61
+401.265635,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",61
+401.266900,10.800000,,,,,,,,,,,,,"cudaLaunchKernel",62
+401.276899,4.415000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",62
+401.278100,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",63
+401.288387,4.287000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",63
+401.289600,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",64
+401.299778,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",64
+401.300900,11.600000,,,,,,,,,,,,,"cudaLaunchKernel",65
+401.311874,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",65
+401.313000,11.600000,,,,,,,,,,,,,"cudaLaunchKernel",66
+401.323714,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",66
+401.325000,11.400000,,,,,,,,,,,,,"cudaLaunchKernel",67
+401.335586,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",67
+401.336800,34.300000,,,,,,,,,,,,,"cudaLaunchKernel",68
+401.370209,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",68
+401.371700,12.000000,,,,,,,,,,,,,"cudaLaunchKernel",69
+401.382881,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",69
+401.384200,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",70
+401.394560,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",70
+401.395700,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",71
+401.405889,4.255000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",71
+401.407000,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",72
+401.417216,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",72
+401.418400,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",73
+401.428512,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",73
+401.429700,24.000000,,,,,,,,,,,,,"cudaLaunchKernel",74
+401.452863,4.417000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",74
+401.454100,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",75
+401.464320,4.287000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",75
+401.465500,10.800000,,,,,,,,,,,,,"cudaLaunchKernel",76
+401.475391,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",76
+401.476700,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",77
+401.487007,4.320000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",77
+401.488200,24.800000,,,,,,,,,,,,,"cudaLaunchKernel",78
+401.511806,4.417000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",78
+401.513500,11.700000,,,,,,,,,,,,,"cudaLaunchKernel",79
+401.524382,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",79
+401.525700,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",80
+401.536446,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",80
+401.537000,23.500000,,,,,,,,,,,,,"cudaLaunchKernel",81
+401.559678,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",81
+401.560900,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",82
+401.571262,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",82
+401.572300,10.800000,,,,,,,,,,,,,"cudaLaunchKernel",83
+401.582333,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",83
+401.583500,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",84
+401.593821,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",84
+401.594900,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",85
+401.605181,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",85
+401.606400,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",86
+401.616573,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",86
+401.617800,10.600000,,,,,,,,,,,,,"cudaLaunchKernel",87
+401.627741,4.287000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",87
+401.628800,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",88
+401.639036,4.417000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",88
+401.640300,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",89
+401.650396,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",89
+401.651600,10.900000,,,,,,,,,,,,,"cudaLaunchKernel",90
+401.661852,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",90
+401.663000,10.700000,,,,,,,,,,,,,"cudaLaunchKernel",91
+401.672988,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",91
+401.674100,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",92
+401.684636,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",92
+401.685500,10.600000,,,,,,,,,,,,,"cudaLaunchKernel",93
+401.695451,4.321000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",93
+401.696500,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",94
+401.706843,4.417000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",94
+401.707900,10.800000,,,,,,,,,,,,,"cudaLaunchKernel",95
+401.717979,4.256000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",95
+401.719100,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",96
+401.729339,4.416000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",96
+401.730500,11.100000,,,,,,,,,,,,,"cudaLaunchKernel",97
+401.740731,4.288000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",97
+401.742000,11.000000,,,,,,,,,,,,,"cudaLaunchKernel",98
+401.752283,4.448000,1,1,1,23,23,1,30,0,2.457031,"NVIDIA GeForce MX250 (0)","1","7","convolution_optimized(float*, float*, float*, int, int, int, int)",98
+401.753500,13.200000,,,,,,,,,,,,,"cudaDeviceSynchronize",99

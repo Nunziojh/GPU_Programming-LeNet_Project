@@ -1,4 +1,4 @@
-#include "functions.h"
+#include "convolution_functions.h"
     
 int rounds = 1;
 

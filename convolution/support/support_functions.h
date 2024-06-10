@@ -1,7 +1,7 @@
-#ifndef SUPPORT_FUNCTIONS_H
-#define SUPPORT_FUNCTIONS_H
+#ifndef SUPPORT_C_FUNCTIONS_H
+#define SUPPORT_C_FUNCTIONS_H
 
-#include "../functions.h"
+#include "../convolution_functions.h"
 
 __global__ void clean_vector_dev(float *m, int dim);
 __host__ void clean_vector_host(float *m, int dim);

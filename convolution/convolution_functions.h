@@ -1,12 +1,10 @@
-#ifndef FUNCTIONS_H
-#define FUNCTIONS_H
+#ifndef C_FUNCTIONS_H
+#define C_FUNCTIONS_H
 
-#include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_profiler_api.h>
 #include <stdlib.h>
 #include <stdio.h>
-//comment
 
 #ifdef __linux__
 #include <sys/time.h>

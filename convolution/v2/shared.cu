@@ -62,8 +62,8 @@ __global__ void convolution_shared(float *in, float *out, float *kernel, int in_
         for(i = 0; i < kernel_dim; i++){
             for(j = 0; j < kernel_dim; j++){
                 if((new_idx + j) >= 0 && (new_idx + j) < in_dim && (new_idy + i) >= 0 && (new_idy + i) < in_dim){
-                    val = in[(new_idy + i) * in_dim + j + new_idx];
-                    tmp += val * kernel[(kernel_dim * kernel_dim - 1) - (i * kernel_dim + j)];
+                    val = data[j];
+                    tmp += val * filter[j];
                 }
             }
             filter += kernel_dim;

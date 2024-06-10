@@ -1,9 +1,9 @@
-==23520== NVPROF is profiling process 23520, command: runnable.exe
-==23520== Profiling application: runnable.exe
-==23520== Profiling result:
+==5956== NVPROF is profiling process 5956, command: runnable.exe
+==5956== Profiling application: runnable.exe
+==5956== Profiling result:
 "Type","Time(%)","Time","Calls","Avg","Min","Max","Name"
 ,%,us,,us,us,us,
-"GPU activities",100.000000,29.088000,6,4.848000,4.800000,4.928000,"convolution_shared(float*, float*, float*, int, int, int, int)"
-"API calls",98.053986,781.000000,6,130.166000,11.100000,703.600000,"cudaLaunchKernel"
-"API calls",1.795355,14.300000,1,14.300000,14.300000,14.300000,"cudaDeviceSynchronize"
-"API calls",0.150659,1.200000,1,1.200000,1.200000,1.200000,"cuDeviceGetCount"
+"GPU activities",100.000000,24.640000,6,4.106000,4.000000,4.544000,"convolution_shared(float*, float*, float*, int, int, int, int)"
+"API calls",99.160765,2044.100000,6,340.683000,13.800000,1948.000000,"cudaLaunchKernel"
+"API calls",0.717959,14.800000,1,14.800000,14.800000,14.800000,"cudaDeviceSynchronize"
+"API calls",0.121277,2.500000,1,2.500000,2.500000,2.500000,"cuDeviceGetCount"

@@ -4,7 +4,7 @@ int rounds = 1;
 
 int main(int argc, char **argv)
 {
-    srand(time(NULL));
+    srand(2);
 
     int i, j, r;
     int total_out_dim = OUT_X * OUT_Y * OUT_Z * OUT_N;
@@ -30,6 +30,10 @@ int main(int argc, char **argv)
     cudaMalloc((void **)&dev_input, INPUT_X * INPUT_Y * INPUT_Z * INPUT_N * sizeof(float));
     cudaMalloc((void **)&dev_kernel, KERNEL_X * KERNEL_Y * KERNEL_Z * KERNEL_N * sizeof(float));
     cudaMalloc((void **)&dev_output, OUT_X * OUT_Y * OUT_Z * OUT_N * sizeof(float));
+
+#ifdef DEBUG_PRINT
+    init_values(host_input, host_kernel, host_output, dev_input, dev_kernel, dev_output);
+#endif
     
     dim3 block, grid;
     unsigned int shared_mem_dim;

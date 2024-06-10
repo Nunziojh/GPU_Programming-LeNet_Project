@@ -1,0 +1,13 @@
+==16460== NVPROF is profiling process 16460, command: runnable.exe
+==16460== Profiling application: runnable.exe
+==16460== Profiling result:
+"Start","Duration","Grid X","Grid Y","Grid Z","Block X","Block Y","Block Z","Registers Per Thread","Static SMem","Dynamic SMem","Device","Context","Stream","Name","Correlation_ID"
+ms,ms,,,,,,,,B,B,,,,,
+300.553900,0.001600,,,,,,,,,,,,,"cuDeviceGetCount",1
+685.096300,1.069800,,,,,,,,,,,,,"cudaLaunchKernel",2
+686.159368,0.002816,1,1,1,9,9,1,19,0,0,"NVIDIA GeForce MX250 (0)","1","7","avg_pooling(float*, float*, int, int, int, int, int, int)",2
+686.168600,0.018400,,,,,,,,,,,,,"cudaLaunchKernel",3
+686.185031,0.001953,1,1,1,9,9,1,19,0,0,"NVIDIA GeForce MX250 (0)","1","7","avg_pooling(float*, float*, int, int, int, int, int, int)",3
+686.187800,0.014500,,,,,,,,,,,,,"cudaLaunchKernel",4
+686.201607,0.002048,1,1,1,9,9,1,19,0,0,"NVIDIA GeForce MX250 (0)","1","7","avg_pooling(float*, float*, int, int, int, int, int, int)",4
+686.202900,0.012400,,,,,,,,,,,,,"cudaDeviceSynchronize",5

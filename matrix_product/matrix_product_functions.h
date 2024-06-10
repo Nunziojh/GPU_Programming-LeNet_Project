@@ -18,14 +18,14 @@
 
 #define M1_W        25
 #define M1_H        30
-#define M1_Z        3
+#define M1_Z        1
 
 #define M2_W        25
-#define M2_H        30
+#define M2_H        20
 #define M2_Z        1
 
-#define OUT_W       25
-#define OUT_H       30
+#define OUT_W       20
+#define OUT_H       25
 #define OUT_Z       1
 
 #define SCALAR      3

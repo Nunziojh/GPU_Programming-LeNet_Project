@@ -1,0 +1,15 @@
+==16004== NVPROF is profiling process 16004, command: runnable.exe
+==16004== Profiling application: runnable.exe
+==16004== Profiling result:
+"Start","Duration","Grid X","Grid Y","Grid Z","Block X","Block Y","Block Z","Registers Per Thread","Static SMem","Dynamic SMem","Device","Context","Stream","Name","Correlation_ID"
+ms,ms,,,,,,,,B,B,,,,,
+166.928500,0.001400,,,,,,,,,,,,,"cuDeviceGetCount",1
+479.107300,1.541200,,,,,,,,,,,,,"cudaLaunchKernel",2
+480.642811,0.004416,1,1,1,32,32,1,32,0,0,"NVIDIA GeForce MX250 (0)","1","7","inverse_avg_pooling_reg(float*, float*, float*, int, int, int, int, int, int)",2
+480.651200,0.015100,,,,,,,,,,,,,"cudaLaunchKernel",3
+480.664858,0.003360,1,1,1,32,32,1,32,0,0,"NVIDIA GeForce MX250 (0)","1","7","inverse_avg_pooling_reg(float*, float*, float*, int, int, int, int, int, int)",3
+480.666800,0.011200,,,,,,,,,,,,,"cudaLaunchKernel",4
+480.677466,0.003328,1,1,1,32,32,1,32,0,0,"NVIDIA GeForce MX250 (0)","1","7","inverse_avg_pooling_reg(float*, float*, float*, int, int, int, int, int, int)",4
+480.678600,0.041800,,,,,,,,,,,,,"cudaLaunchKernel",5
+480.719545,0.003297,1,1,1,32,32,1,32,0,0,"NVIDIA GeForce MX250 (0)","1","7","inverse_avg_pooling_reg(float*, float*, float*, int, int, int, int, int, int)",5
+480.720900,0.032300,,,,,,,,,,,,,"cudaDeviceSynchronize",6

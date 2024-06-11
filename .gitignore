@@ -1,3 +1,4 @@
 .vscode/
 out_test_dir/
 *.obj
+*.cmd

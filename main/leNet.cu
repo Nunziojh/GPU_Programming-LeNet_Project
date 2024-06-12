@@ -107,7 +107,7 @@ int main(int argc, char **argv){
     float max;
     int prediction_index = 0;
     int prediction_counter = 0;
-    printf("Immagini lette: %d\nDimensione di una epoca: %d\nNumero di epoche: %d", counter, batch_dim, epoch_dim);
+    printf("Immagini lette: %d\nDimensione di una epoca: %d\nNumero di epoche: %d\n", counter, batch_dim, epoch_dim);
 
 #elif TRAIN
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv){
     batch_dim = counter;
     printf("Specificare il nuemro di epoche su cui addestrare la rete: ");
     scanf("%d", &epoch_dim);
-    printf("Immagini lette: %d\nDimensione di una epoca: %d\nNumero di epoche: %d", counter, batch_dim, epoch_dim);
+    printf("Immagini lette: %d\nDimensione di una epoca: %d\nNumero di epoche: %d\n", counter, batch_dim, epoch_dim);
 
 #elif USAGE
 
@@ -260,6 +260,10 @@ int main(int argc, char **argv){
      * per le quali si vuole addestrare la rete.
     */
 
+    // epoch_dim = 1;
+    // batch_dim = 1;
+    // float *buffer = (float *)malloc(sizeof(float) * 50000);
+    // FILE *parametri_in_ingresso;
     for(int epoch = 0; epoch < epoch_dim; epoch++){
         for(int batch = 0; batch < batch_dim; batch++){
 
@@ -314,12 +318,23 @@ int main(int argc, char **argv){
             grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y), (unsigned int)ceil((float)kernel_num_first_layer / block.z)};
             tanh<<<grid, block>>>(first_conv, out_w, out_h, kernel_num_first_layer);
 
+            // debug_print(first_conv, 28, 28, 6, 1, "first_conv_new.txt");
+
             /****
              * Calcoliamo il primo layer di Average Pooling con la relativa funzione di attivazione tanh.
              * Partiamo dal risultato del livello precedente salvato nella variabile 'first_conv', come vettore di dimensioni
              * (28 x 28 x 6), e applichiamo il filtro e otteniamo un risultato, salvato nella variabile 'first_pool', di dimensione
              * (14 x 14 x 6), sempre memorizzandolo come un vettore.
             */
+
+
+            // if((parametri_in_ingresso = fopen("base_first_conv.txt", "r")) == NULL){printf("errore\n");exit(1);}
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(first_conv, buffer, sizeof(float) * 28 * 28 * 6, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(first_conv, 28, 28, 6, 1, "first_conv_copied.txt");
+
+
             in_h = out_h;
             in_w = out_w; 
             out_h = (in_h - window_size) / stride_p + 1;
@@ -334,11 +349,22 @@ int main(int argc, char **argv){
             grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y), (unsigned int)ceil((float)kernel_num_first_layer / block.z)};
             tanh<<<grid, block>>>(first_pool, out_w, out_h, kernel_num_first_layer);
 
+            // debug_print(first_pool, 14, 14, 6, 1, "first_pool_new.txt");
+
             /****
              * Calcoliamo il secondo layer convolutivo a partire dall'uscita del layer di pooling precedente,
              * le dimensioni di ingresso sono (14 x 14 x 6), usiamo 16 kernel di dimensioni (5 x 5 x 6) e otteniamo
              * un valore di uscita, salvato nella variabile second_conv di dimensione (10 x 10 x 16).
             */
+
+
+            // parametri_in_ingresso = fopen("base_first_pool.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(first_pool, buffer, sizeof(float) * 14 * 14 * 6, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(first_pool, 14, 14, 6, 1, "first_pool_copied.txt");
+
+
             in_h = out_h;
             in_w = out_w;
             out_h = (in_h + 2 * padding - kernel_dim) / stride_c + 1;
@@ -357,10 +383,21 @@ int main(int argc, char **argv){
             grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y), (unsigned int)ceil((float)kernel_num_second_layer / block.z)};
             tanh<<<grid, block>>>(second_conv, out_w, out_h, kernel_num_second_layer);
 
+            // debug_print(second_conv, 10, 10, 16, 1, "second_conv_new.txt");
+
             /****
              * Calcoliamo il secondo layer di Average Pooling partendo da una matrice di dimensini (10 x 10 x 16)
              * e otteniamo una matrice di dimensioni (5 x 5 x 16) che salviamo come vettore in second_pool.
             */
+
+
+            // parametri_in_ingresso = fopen("base_second_conv.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(second_conv, buffer, sizeof(float) * 10 * 10 * 16, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(second_conv, 10, 10, 16, 1, "second_conv_copied.txt");
+
+
             in_h = out_h;
             in_w = out_w;
             out_h = (in_h - window_size) / stride_p + 1;
@@ -375,11 +412,22 @@ int main(int argc, char **argv){
             grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y), (unsigned int)ceil((float)kernel_num_second_layer / block.z)};
             tanh<<<grid, block>>>(second_pool, out_w, out_h, kernel_num_second_layer);
 
+            // debug_print(second_pool, 5, 5, 16, 1, "second_pool_new.txt");
+
             /****
              * Calcoliamo il terzo layer convolutivo a partire dall'uscita del layer di pooling precedente,
              * le dimensioni di ingresso sono (5 x 5 x 16), usiamo 120 kernel di dimensioni (5 x 5) e otteniamo
              * un valore di uscita, salvato nella variabile third_conv di dimensione (1 x 1 x 120).
             */
+
+
+            // parametri_in_ingresso = fopen("base_second_pool.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(second_pool, buffer, sizeof(float) * 5 * 5 * 16, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(second_pool, 5, 5, 16, 1, "second_pool_copied.txt");
+
+
             in_h = out_h;
             in_w = out_w;
             out_h = (in_h + 2 * padding - kernel_dim) / stride_c + 1;
@@ -398,40 +446,65 @@ int main(int argc, char **argv){
             grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y), (unsigned int)ceil((float)kernel_num_third_layer / block.z)};
             tanh<<<grid, block>>>(third_conv, out_w, out_h, kernel_num_third_layer);
 
+            // debug_print(third_conv, 1, 1, 120, 1, "third_conv_new.txt");
+
             /****
              * A partire dalla matrice di dimensini (120 x m) ottenuta dall'ultimo layer convolutivo, calcoliamo il primo
              * livello di Fully Connected usando come matrice di pesi la variabile 'fc_first_layer_dev' di dimensioni
              * (84 x 120). Otteniamo una matrice risultato di dimensioni (84 x m).
             */
+
+
+            // parametri_in_ingresso = fopen("base_third_conv.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(third_conv, buffer, sizeof(float) * 120, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(third_conv, 1, 1, 120, 1, "third_conv_copied.txt");
+            // debug_print(fc_first_layer_dev, 120, 84, 1, 1, "fc_first_layer_dev_new.txt");
+
+
             in_h = fc_first_dim;
             in_w = m;
             out_h = fc_second_dim;
             out_w = m;
 
             block = {(unsigned int)tile_dim, (unsigned int)tile_dim};
-            grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y)};
+            grid = {(unsigned int)ceil((float)in_h / block.x), (unsigned int)ceil((float)out_h / block.y)};
             shared_mem_dim = tile_dim * tile_dim * 2 * sizeof(float);
-            matrix_product_shared<<<grid, block, shared_mem_dim>>>(fc_first_layer_dev, third_conv, second_fc, out_w, out_h, in_w, tile_dim);
+            matrix_product_shared<<<grid, block, shared_mem_dim>>>(fc_first_layer_dev, third_conv, second_fc, out_w, out_h, fc_first_dim, tile_dim);
+            
+            // debug_print(second_fc, 1, 84, 1, 1, "second_fc_new_beforet.txt");
 
             max_third_dim = (1024 / (min(32, out_w) * min(32, out_h)));
             block = {(unsigned int)min(32, out_w), (unsigned int)min(32, out_h), (unsigned int)min(1, max_third_dim)};
             grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y), (unsigned int)ceil((float)1 / block.z)};
             tanh<<<grid, block>>>(second_fc, 1, fc_second_dim, 1);
 
+            // debug_print(second_fc, 1, 84, 1, 1, "second_fc_new.txt");
+
             /****
              * A partire dalla matrice di dimensini (84 x m) ottenuta al livello FC precedente, calcoliamo il secondo
              * livello di Fully Connected usando come matrice di pesi la variabile 'fc_second_layer_dev' di dimensioni
              * (10 x 84). Otteniamo una matrice risultato di dimensioni (10 x m).
             */
+
+
+            // parametri_in_ingresso = fopen("base_second_fc.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(second_fc, buffer, sizeof(float) * 84, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(second_fc, 1, 84, 1, 1, "second_fc_copied.txt");
+
+
             in_h = fc_second_dim;
             in_w = m;
             out_h = fc_third_dim;
             out_w = m;
 
             block = {(unsigned int)tile_dim, (unsigned int)tile_dim};
-            grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y)};
+            grid = {(unsigned int)ceil((float)in_h / block.x), (unsigned int)ceil((float)out_h / block.y)};
             shared_mem_dim = tile_dim * tile_dim * 2 * sizeof(float);
-            matrix_product_shared<<<grid, block, shared_mem_dim>>>(fc_second_layer_dev, second_fc, third_fc, out_w, out_h, in_w, tile_dim);
+            matrix_product_shared<<<grid, block, shared_mem_dim>>>(fc_second_layer_dev, second_fc, third_fc, out_w, out_h, fc_second_dim, tile_dim);
 
             /****
              * Calcoliamo la funzione di Loss calcolando prima gli esponenziali sul dispositivo e poi portiamo i valori
@@ -439,7 +512,19 @@ int main(int argc, char **argv){
              * per poi dividere ogni elemento del vettore per il valore calcolato.
             */
             exponential<<<1, fc_third_dim>>>(third_fc, fc_third_dim);
+            
+            
+            // parametri_in_ingresso = fopen("base_third_fc.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(third_fc, buffer, sizeof(float) * 10, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(third_fc, 1, 10, 1, 1, "third_fc_copied.txt");
+            
+            
             cudaMemcpy(prediction, third_fc, sizeof(float) * fc_third_dim, cudaMemcpyDeviceToHost);
+
+            // debug_print(third_fc, 1, 10, 1, 1, "third_fc.txt");
+
 
             summation = 0.0;
 #if defined(USAGE) || defined(TEST)
@@ -469,6 +554,7 @@ int main(int argc, char **argv){
                 loss += target[i] * logf(prediction[i]);
             }
             loss = -loss;
+            //printf("loss = %f\n", loss);
 #endif
 #ifdef TRAIN
             // Inizio della BackPropagation
@@ -479,6 +565,16 @@ int main(int argc, char **argv){
             block = {(unsigned int)fc_third_dim};
             grid = {(unsigned int)(block.x / 1024 + 1)};
             subtraction<<<grid, block>>>(dZ2, prediction_dev, target_dev, fc_third_dim);
+            
+            // cudaDeviceSynchronize();
+            // debug_print(dZ2, 1, 10, 1, 1, "dZ2_new.txt");
+            // parametri_in_ingresso = fopen("base_dZ2.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dZ2, buffer, sizeof(float) * 10, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dZ2, 1, 10, 1, 1, "dZ2_copied.txt");
+
+            //debug_print(second_fc, 1, 84, 1, 1, "second_fc_beforeu.txt");
 
             /****
              * Calcoliamo la derivata dei pesi tra il secondo e il terzo livello FC.
@@ -493,9 +589,16 @@ int main(int argc, char **argv){
             out_w = fc_second_dim;
 
             block = {(unsigned int)tile_dim, (unsigned int)tile_dim};
-            grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)in_h / block.y)};
+            grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y)};
             shared_mem_dim = tile_dim * tile_dim * 2 * sizeof(float);
             matrix_product_transpose_shared<<<grid, block, shared_mem_dim>>>(dZ2, second_fc, dW2, out_w, out_h, in_w, tile_dim);
+
+            // debug_print(dW2, 84, 10, 1, 1, "dW2_new.txt");
+            // parametri_in_ingresso = fopen("base_dW2.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dW2, buffer, sizeof(float) * 10 * 84, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dW2, 84, 10, 1, 1, "dW2_copied.txt");
         
             /****
              * Calcoliamo la derivata delle uscite del secondo layer FC.
@@ -512,7 +615,7 @@ int main(int argc, char **argv){
             out_w = m;
 
             block = {(unsigned int)tile_dim, (unsigned int)tile_dim};
-            grid = {(unsigned int)ceil((float)in_w / block.x), (unsigned int)ceil((float)out_h / block.y)};
+            grid = {(unsigned int)ceil((float)in_h / block.x), (unsigned int)ceil((float)out_h / block.y)};
             shared_mem_dim = tile_dim * tile_dim * 2 * sizeof(float);
             matrix_transpose_product_shared<<<grid, block, shared_mem_dim>>>(fc_second_layer_dev, dZ2, dZ1, out_w, out_h, in_h, tile_dim);
 
@@ -521,6 +624,13 @@ int main(int argc, char **argv){
             matrix_dot_product<<<grid, block>>>(second_fc, second_fc, gdZ1, out_w, out_h, 1);
             scalar_subtraction<<<grid, block>>>(gdZ1, gdZ1, out_w, out_h, 1);
             matrix_dot_product<<<grid, block>>>(dZ1, gdZ1, dZ1, out_w, out_h, 1);
+
+            // debug_print(dZ1, 1, 84, 1, 1, "dZ1_new.txt");
+            // parametri_in_ingresso = fopen("base_dZ1.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dZ1, buffer, sizeof(float) * 84, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dZ1, 1, 84, 1, 1, "dZ1_copied.txt");
 
             /****
              * Calcoliamo la derivata dei pesi tra il primo e il secondo livello FC.
@@ -535,9 +645,16 @@ int main(int argc, char **argv){
             out_w = fc_first_dim;
 
             block = {(unsigned int)tile_dim, (unsigned int)tile_dim};
-            grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)in_h / block.y)};
+            grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y)};
             shared_mem_dim = tile_dim * tile_dim * 2 * sizeof(float);
             matrix_product_transpose_shared<<<grid, block, shared_mem_dim>>>(dZ1, third_conv, dW1, out_w, out_h, in_w, tile_dim);
+
+            // debug_print(dW1, 84, 120, 1, 1, "dW1_new.txt");
+            // parametri_in_ingresso = fopen("base_dW1.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dW1, buffer, sizeof(float) * 84 * 120, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dW1, 84, 120, 1, 1, "dW1_copied.txt");
 
             /****
              * Calcoliamo la derivata delle uscite del secondo layer FC.
@@ -554,15 +671,22 @@ int main(int argc, char **argv){
             out_w = m;
 
             block = {(unsigned int)tile_dim, (unsigned int)tile_dim};
-            grid = {(unsigned int)ceil((float)in_w / block.x), (unsigned int)ceil((float)out_h / block.y)};
+            grid = {(unsigned int)ceil((float)in_h / block.x), (unsigned int)ceil((float)out_h / block.y)};
             shared_mem_dim = tile_dim * tile_dim * 2 * sizeof(float);
-            matrix_transpose_product_shared<<<grid, block, shared_mem_dim>>>(fc_first_layer_dev, dZ1, dZ0, out_w, out_h, in_h, tile_dim);
+            matrix_transpose_product_shared<<<grid, block, shared_mem_dim>>>(fc_first_layer_dev, dZ1, dZ0, out_w, out_h, fc_second_dim, tile_dim);
 
             block = {(unsigned int)min(32, out_w), (unsigned int)min(32, out_h)};
             grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y)};
             matrix_dot_product<<<grid, block>>>(third_conv, third_conv, gdZ0, out_w, out_h, 1);
             scalar_subtraction<<<grid, block>>>(gdZ0, gdZ0, out_w, out_h, 1);
             matrix_dot_product<<<grid, block>>>(dZ0, gdZ0, dZ0, out_w, out_h, 1);
+
+            // debug_print(dZ0, 1, 120, 1, 1, "dZ0_new.txt");
+            // parametri_in_ingresso = fopen("base_dZ0.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dZ0, buffer, sizeof(float) * 120, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dZ0, 1, 120, 1, 1, "dZ0_copied.txt");
 
             /****
              * Calcoliamo la derivata del terzo gruppo di kernel che di dimensioni (5 x 5 x 16), di cui
@@ -584,6 +708,13 @@ int main(int argc, char **argv){
             shared_mem_dim = (in_w * in_h + w_2 * h_2 * 1 * block.z) * sizeof(float);
             convolution_forNOutChannels_shared<<<grid, block, shared_mem_dim>>>(second_pool, dZ0, dF2, in_w, in_h, kernel_num_second_layer, w_2, h_2, 1, kernel_num_third_layer, out_w, out_h, kernel_num_second_layer, kernel_num_third_layer);
 
+            // debug_print(dF2, 5, 5, 16, 120, "dF2_new.txt");
+            // parametri_in_ingresso = fopen("base_dF2.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dF2, buffer, sizeof(float) * 5 * 5 * 16 * 120, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dF2, 5, 5, 16, 120, "dF2_copied.txt");
+            
             /****
              * Cacoliamo la Full Convolution tra i kernel della terza convoluzione e dZ0 che è
              * la derivata, rispetto alla Loss, calcolata fino all'uscita della terza convoluzione.
@@ -604,6 +735,13 @@ int main(int argc, char **argv){
             grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y), (unsigned int)ceil((float)kernel_num_second_layer / block.z)};
             full_Convolution<<<grid, block>>>(kernels_third_layer_dev, dZ0, dA3, in_w, in_h, kernel_num_second_layer, w_2, h_2, 1, kernel_num_third_layer, out_w, out_h, kernel_num_second_layer, padding_full_conv);
 
+            // debug_print(dA3, 5, 5, 16, 1, "dA3_new.txt");
+            // parametri_in_ingresso = fopen("base_dA3.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dA3, buffer, sizeof(float) * 5 * 5 * 16, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dA3, 5, 5, 16, 1, "dA3_copied.txt");
+
             /****
              * Calcoliamo la derivata delle uscite del secondo layer di Pooling.
              * Iteriamo su tutti canali singolarmente e per ognuno calcoliamo
@@ -622,6 +760,13 @@ int main(int argc, char **argv){
             scalar_subtraction<<<grid, block>>>(dP1, dP1, out_w, out_h, kernel_num_second_layer);
             matrix_dot_product<<<grid, block>>>(dP1, dA3, dP1, out_w, out_h, kernel_num_second_layer);
             
+            // debug_print(dP1, 5, 5, 16, 1, "dP1_new.txt");
+            // parametri_in_ingresso = fopen("base_dP1.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dP1, buffer, sizeof(float) * 5 * 5 * 16, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dP1, 5, 5, 16, 1, "dP1_copied.txt");
+
             // block = {(unsigned int)out_w, (unsigned int)out_h};
             // grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
             // for(int i = 0; i < kernel_num_second_layer; i++){
@@ -646,6 +791,14 @@ int main(int argc, char **argv){
             grid = {(unsigned int)ceil((float)in_w / block.x), (unsigned int)ceil((float)in_h / block.y), (unsigned int)ceil((float)kernel_num_second_layer / block.z),};
             inverse_avg_pooling_monolithic<<<grid, block>>>(dP1, dA2, second_conv, in_w, in_h, out_w, out_h, kernel_num_second_layer, stride_p, window_size);
 
+            // debug_print(dA2, 10, 10, 16, 1, "dA2.txt");
+            // debug_print(dA2, 10, 10, 16, 1, "dA2_new.txt");
+            // parametri_in_ingresso = fopen("base_dA2.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dA2, buffer, sizeof(float) * 10 * 10 * 16, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dA2, 10, 10, 16, 1, "dA2_copied.txt");
+
             /****
              * Calcoliamo la derivata delle uscite del secondo layer di Convoluzione.
              * Iteriamo su tutti canali singolarmente e per ognuno calcoliamo
@@ -663,6 +816,14 @@ int main(int argc, char **argv){
             matrix_dot_product<<<grid, block>>>(second_conv, second_conv, dC1, out_w, out_h, kernel_num_second_layer);
             scalar_subtraction<<<grid, block>>>(dC1, dC1, out_w, out_h, kernel_num_second_layer);
             matrix_dot_product<<<grid, block>>>(dC1, dA2, dC1, out_w, out_h, kernel_num_second_layer);
+
+            // debug_print(dC1, 10, 10, 16, 1, "dC1.txt");
+            // debug_print(dC1, 10, 10, 16, 1, "dC1_new.txt");
+            // parametri_in_ingresso = fopen("base_dC1.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dC1, buffer, sizeof(float) * 10 * 10 * 16, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dC1, 10, 10, 16, 1, "dC1_copied.txt");
 
             // block = {(unsigned int)out_w, (unsigned int)out_h};
             // grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
@@ -692,6 +853,14 @@ int main(int argc, char **argv){
             grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y), (unsigned int)ceil((float)kernel_num_first_layer / block.z)};
             full_Convolution<<<grid, block>>>(kernels_second_layer_dev, dC1, dA1, in_w, in_h, kernel_num_first_layer, w_2, h_2, 1, kernel_num_second_layer, out_w, out_h, kernel_num_first_layer, padding_full_conv);
 
+            // debug_print(dA1, 14, 14, 6, 1, "dA1.txt");
+            // debug_print(dA1, 14, 14, 6, 1, "dA1_new.txt");
+            // parametri_in_ingresso = fopen("base_dA1.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dA1, buffer, sizeof(float) * 14 * 14 * 6, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dA1, 14, 14, 6, 1, "dA1_copied.txt");
+
             /****
              * Calcoliamo la derivata del secondo gruppo di kernel di dimensioni (5 x 5 x 6), di cui
              * ne abbiamo 16.
@@ -712,6 +881,13 @@ int main(int argc, char **argv){
             shared_mem_dim = (in_w * in_h + w_2 * h_2 * 1 * block.z) * sizeof(float);
             convolution_forNOutChannels_shared<<<grid, block, shared_mem_dim>>>(first_pool, dC1, dF1, in_w, in_h, kernel_num_first_layer, w_2, h_2, 1, kernel_num_second_layer, out_w, out_h, kernel_num_first_layer, kernel_num_second_layer);
 
+            // debug_print(dF1, 5, 5, 6, 16, "dF1_new.txt");
+            // parametri_in_ingresso = fopen("base_dF1.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dF1, buffer, sizeof(float) * 5 * 5 * 6 * 16, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dF1, 5, 5, 6, 16, "dF1_copied.txt");
+
             /****
              * Calcoliamo la derivata delle uscite del secondo layer di Pooling.
              * Iteriamo su tutti canali singolarmente e per ognuno calcoliamo
@@ -729,6 +905,13 @@ int main(int argc, char **argv){
             matrix_dot_product<<<grid, block>>>(first_pool, first_pool, dP0, out_w, out_h, kernel_num_first_layer);
             scalar_subtraction<<<grid, block>>>(dP0, dP0, out_w, out_h, kernel_num_first_layer);
             matrix_dot_product<<<grid, block>>>(dP0, dA1, dP0, out_w, out_h, kernel_num_first_layer);
+
+            // debug_print(dP0, 14, 14, 6, 1, "dP0_new.txt");
+            // parametri_in_ingresso = fopen("base_dP0.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dP0, buffer, sizeof(float) * 14 * 14 * 6, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dP0, 14, 14, 6, 1, "dP0_copied.txt");
 
             // block = {(unsigned int)out_w, (unsigned int)out_h};
             // grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
@@ -753,6 +936,13 @@ int main(int argc, char **argv){
             block = {(unsigned int)min(32, in_w), (unsigned int)min(32, in_h), (unsigned int)min(kernel_num_second_layer, (1024 / (min(32, in_w) * min(32, in_h))))};
             grid = {(unsigned int)ceil((float)in_w / block.x), (unsigned int)ceil((float)in_h / block.y), (unsigned int)ceil((float)kernel_num_second_layer / block.z),};
             inverse_avg_pooling_monolithic<<<grid, block>>>(dP0, dA0, first_conv, in_w, in_h, out_w, out_h, kernel_num_second_layer, stride_p, window_size);
+
+            // debug_print(dA0, 28, 28, 6, 1, "dA0_new.txt");
+            // parametri_in_ingresso = fopen("base_dA0.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dA0, buffer, sizeof(float) * 28 * 28 * 6, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dA0, 28, 28, 6, 1, "dA0_copied.txt");
         
             /****
              * Calcoliamo la derivata delle uscite del primo layer di Convoluzione.
@@ -771,6 +961,13 @@ int main(int argc, char **argv){
             matrix_dot_product<<<grid, block>>>(first_conv, first_conv, dC0, out_w, out_h, kernel_num_first_layer);
             scalar_subtraction<<<grid, block>>>(dC0, dC0, out_w, out_h, kernel_num_first_layer);
             matrix_dot_product<<<grid, block>>>(dC0, dA0, dC0, out_w, out_h, kernel_num_first_layer);
+
+            // debug_print(dC0, 28, 28, 6, 1, "dC0_new.txt");
+            // parametri_in_ingresso = fopen("base_dC0.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dC0, buffer, sizeof(float) * 28 * 28 * 6, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dC0, 28, 28, 6, 1, "dC0_copied.txt");
             
             // block = {(unsigned int)out_w, (unsigned int)out_h};
             // grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
@@ -799,6 +996,15 @@ int main(int argc, char **argv){
             grid = {(unsigned int)ceil((float)(in_w * in_h) / block.x), (unsigned int)ceil((float)1 / block.y), (unsigned int)ceil((float)kernel_num_first_layer / block.z)};
             shared_mem_dim = (in_w * in_h + w_2 * h_2 * 1 * block.z) * sizeof(float);
             convolution_forNOutChannels_shared<<<grid, block, shared_mem_dim>>>(img_dev, dC0, dF0, in_w, in_h, 1, w_2, h_2, 1, kernel_num_first_layer, out_w, out_h, 1, kernel_num_first_layer);
+
+            // debug_print(img_dev, 32, 32, 1, 1, "Immagine.txt");
+            // // debug_print(dF0, 5, 5, 1, 6, "dF0.txt");
+            // debug_print(dF0, 5, 5, 1, 6, "dF0_new.txt");
+            // parametri_in_ingresso = fopen("base_dF0.txt", "r");
+            // load_parameter(buffer, parametri_in_ingresso);
+            // cudaMemcpy(dF0, buffer, sizeof(float) * 5 * 5 * 6, cudaMemcpyHostToDevice);
+            // fclose(parametri_in_ingresso);
+            // debug_print(dF0, 5, 5, 1, 6, "dF0_copied.txt");
 
             /*-------------------------------
                 Fine calcolo delle derivate.

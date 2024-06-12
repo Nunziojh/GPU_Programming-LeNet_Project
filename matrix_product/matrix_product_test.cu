@@ -71,17 +71,17 @@ int main(int argc, char **argv)
         matrix3D_scalar_product<<<grid, block>>>(dev_m1, (float)SCALAR, M1_W, M1_H, M1_Z);
 #elif SHARED_P
         block = {(unsigned int)TILE_DIM, (unsigned int)TILE_DIM};
-        grid = {(unsigned int)ceil((float)OUT_W / block.x), (unsigned int)ceil((float)OUT_H / block.y)};
+        grid = {(unsigned int)ceil((float)M1_W / block.x), (unsigned int)ceil((float)OUT_H / block.y)};
         shared_mem_dim = TILE_DIM * TILE_DIM * 2 * sizeof(float);
         matrix_product_shared<<<grid, block, shared_mem_dim>>>(dev_m1, dev_m2, dev_output, OUT_W, OUT_H, M1_W, TILE_DIM);
 #elif SHARED_TP
         block = {(unsigned int)TILE_DIM, (unsigned int)TILE_DIM};
-        grid = {(unsigned int)ceil((float)M1_W / block.x), (unsigned int)ceil((float)M1_H / block.y)}; //DOVREBBE ESSERE OUT_H INVECE DI M1_H
+        grid = {(unsigned int)ceil((float)OUT_W / block.x), (unsigned int)ceil((float)OUT_H / block.y)}; //DOVREBBE ESSERE OUT_H INVECE DI M1_H
         shared_mem_dim = TILE_DIM * TILE_DIM * 2 * sizeof(float);
         matrix_transpose_product_shared<<<grid, block, shared_mem_dim>>>(dev_m1, dev_m2, dev_output, OUT_W, OUT_H, M1_H, TILE_DIM);
 #elif SHARED_PT
         block = {(unsigned int)TILE_DIM, (unsigned int)TILE_DIM};
-        grid = {(unsigned int)ceil((float)M2_H / block.x), (unsigned int)ceil((float)M1_H / block.y)};
+        grid = {(unsigned int)ceil((float)OUT_W / block.x), (unsigned int)ceil((float)OUT_H / block.y)};
         shared_mem_dim = TILE_DIM * TILE_DIM * 2 * sizeof(float);
         matrix_product_transpose_shared<<<grid, block, shared_mem_dim>>>(dev_m1, dev_m2, dev_output, OUT_W, OUT_H, M1_W, TILE_DIM);
 #else

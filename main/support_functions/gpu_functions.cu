@@ -37,7 +37,7 @@ __global__ void scalar_subtraction(float *out, float *in, int w, int h, int d){
     int idz = blockDim.z * blockIdx.z + threadIdx.z;
 
     if(idx < w && idy < h && idz < d){
-        int index = (idz * d + idy) * w + idx;
+        int index = (idz * h + idy) * w + idx;
         out[index] = 1 - in[index];
     }
 }

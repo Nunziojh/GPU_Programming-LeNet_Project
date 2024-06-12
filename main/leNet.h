@@ -27,7 +27,6 @@
 #include "..\matrix_product\v1\base.h"
 #include "..\pooling\v3\monolithic.h"
 
-#define LEARNING_RATE 0.5
-
+#define LEARNING_RATE 0.001
 
 #endif

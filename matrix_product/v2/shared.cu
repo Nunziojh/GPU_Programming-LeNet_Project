@@ -31,7 +31,7 @@ __global__ void matrix_product_shared(float *m1, float *m2, float *output, int o
          * Aggiunta di recente. Potrebbe succedere che il ciclo for interno, che esegue il prodotto, sia troppo veloce 
          * e che il thread inizi l'iterazione successiva del ciclo e che sovrascriva i dati che gli altri thread andranno a leggere??
         */
-        // __syncthreads();
+        __syncthreads();
     }
     if (Row < out_height && Col < out_width) {
         output[Row * out_width + Col] = Cvalue;

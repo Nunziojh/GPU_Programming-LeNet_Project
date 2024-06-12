@@ -16,16 +16,16 @@
 #include "v2\shared.h"
 #include "support\support_functions.h"
 
-#define M1_W        25
-#define M1_H        30
+#define M1_W        1
+#define M1_H        10
 #define M1_Z        1
 
-#define M2_W        25
-#define M2_H        20
+#define M2_W        1
+#define M2_H        84
 #define M2_Z        1
 
-#define OUT_W       20
-#define OUT_H       25
+#define OUT_W       84
+#define OUT_H       10
 #define OUT_Z       1
 
 #define SCALAR      3

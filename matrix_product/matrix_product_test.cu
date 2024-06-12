@@ -58,17 +58,17 @@ int main(int argc, char **argv)
         grid = {(unsigned int)ceil((float)OUT_W / block.x), (unsigned int)ceil((float)OUT_H / block.y)};
         matrix_product_transpose<<<grid, block>>>(dev_m1, dev_m2, dev_output, OUT_W, OUT_H, M1_W);
 #elif BASE_DP
-        block = {(unsigned int)min(32, OUT_W), (unsigned int)min(32, OUT_H)};
-        grid = {(unsigned int)ceil((float)OUT_W / block.x), (unsigned int)ceil((float)OUT_H / block.y)};
-        matrix_dot_product<<<grid, block>>>(dev_m1, dev_m2, dev_output, OUT_W, OUT_H);
+        block = {(unsigned int)min(32, OUT_W), (unsigned int)min(32, OUT_H), (unsigned int)min(OUT_Z, 1024 / (min(32, OUT_W) * min(32, OUT_H)))};
+        grid = {(unsigned int)ceil((float)OUT_W / block.x), (unsigned int)ceil((float)OUT_H / block.y), (unsigned int)ceil((float)OUT_Z / block.z)};
+        matrix_dot_product<<<grid, block>>>(dev_m1, dev_m2, dev_output, OUT_W, OUT_H, OUT_Z);
 #elif BASE_SP
-        block = {(unsigned int)min(32, M1_W), (unsigned int)min(32, M1_H)};
-        grid = {(unsigned int)ceil((float)M1_W / block.x), (unsigned int)ceil((float)M1_H / block.y)};
-        matrix_scalar_product<<<grid, block>>>(dev_m1, SCALAR, M1_W, M1_H);
-#elif BASE_3D_SP
-        block = {(unsigned int)min(32, M1_W), (unsigned int)min(32, M1_H)};
-        grid = {(unsigned int)M1_Z};
-        matrix3D_scalar_product<<<grid, block>>>(dev_m1, (float)SCALAR, M1_W, M1_H);
+        block = {(unsigned int)min(1024, M1_W * M1_H * M1_Z)};
+        grid = {(unsigned int)ceil((float)(M1_W * M1_H * M1_Z) / block.x)};
+        matrix_scalar_product<<<grid, block>>>(dev_m1, SCALAR, M1_W * M1_H * M1_Z);
+#elif BASE_3D_SP//DA RIMUOVERE PERCHE' NON UTILIZZATO
+        block = {(unsigned int)min(32, M1_W), (unsigned int)min(32, M1_H), (unsigned int)min(M1_Z, 1024 / (min(32, M1_W) * min(32, M1_H)))};
+        grid = {(unsigned int)ceil((float)M1_W / block.x), (unsigned int)ceil((float)M1_H / block.y), (unsigned int)ceil((float)M1_Z / block.z)};
+        matrix3D_scalar_product<<<grid, block>>>(dev_m1, (float)SCALAR, M1_W, M1_H, M1_Z);
 #elif SHARED_P
         block = {(unsigned int)TILE_DIM, (unsigned int)TILE_DIM};
         grid = {(unsigned int)ceil((float)OUT_W / block.x), (unsigned int)ceil((float)OUT_H / block.y)};

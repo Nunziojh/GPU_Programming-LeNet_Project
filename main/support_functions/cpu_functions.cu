@@ -2,14 +2,37 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <float.h>
+#include <math.h>
 
 #include "..\\leNet.h"
+
+#ifdef __linux__
+__host__ void start_timer(struct timeval *start){
+    gettimeofday(start, NULL);
+}
+#else
+__host__ void start_timer(struct timespec *start){
+    timespec_get(start, TIME_UTC);
+}
+#endif
+
+#ifdef __linux__
+__host__ long int stop_timer(struct timeval *start, struct timeval *stop){
+    gettimeofday(stop, NULL);
+    return (stop->tv_sec - start->tv_sec) * 1000000 + stop->tv_usec - start->tv_usec;
+}
+#else
+__host__ long int stop_timer(struct timespec *start, struct timespec *stop){
+    timespec_get(stop, TIME_UTC);
+    return (long int)(((stop->tv_sec - start->tv_sec) * 1e9 + (stop->tv_nsec - start->tv_nsec)) / 1000);
+}
+#endif
 
 __host__ void debug_print(float *matrice_dev, int w, int h, int c, int n, const char *filename){
 
 	FILE *fp;
 	if(filename != NULL){
-		if((fp = fopen(filename, "a")) == NULL){
+		if((fp = fopen(filename, "w")) == NULL){
 			fprintf(stderr, "FILE NON TROVATO\n");
 			exit(1);
 		}
@@ -21,6 +44,7 @@ __host__ void debug_print(float *matrice_dev, int w, int h, int c, int n, const 
     cudaMemcpy(tmp, matrice_dev, sizeof(float) * w * h * c * n, cudaMemcpyDeviceToHost);
 
     for(int l = 0; l < n; l++){
+        fprintf(fp, "\tElemento n. %d\n", l);
         for(int i = 0; i < c; i++){
             for(int j = 0; j < h; j++){
                 for(int k = 0; k < w; k++){
@@ -96,13 +120,15 @@ __host__ void mean_max_min(float *matrix, float *mean, float *max, float *min, i
 
 __host__ void mean_normalization(float *matrix_dev, int w, int h, int c){
     float mean = 0;
-    float max = -FLT_MAX, min = FLT_MAX;
+    float max = -FLT_MAX, minimo = FLT_MAX;
     float *matrix_host = (float *)malloc(sizeof(float) * w * h * c);
     cudaMemcpy(matrix_host, matrix_dev, sizeof(float) * w * h * c, cudaMemcpyDeviceToHost);
-    mean_max_min(matrix_host, &mean, &max, &min, w, h, c);
-    dim3 block{(unsigned int)w, (unsigned int)h};
-    subtraction_scalar_parametric<<<c, block>>>(matrix_dev, mean, w, h);
-    matrix3D_scalar_product<<<c, block>>>(matrix_dev, (2.0 / (max - min)), w, h);
+    mean_max_min(matrix_host, &mean, &max, &minimo, w, h, c);
+
+    dim3 block = (unsigned int)(min(1024, (w * h * c)));
+    dim3 grid = {(unsigned int)ceil((float)(w * h * c) / block.x)};
+    subtraction_scalar_parametric<<<grid, block>>>(matrix_dev, mean, w * h * c);
+    matrix_scalar_product<<<grid, block>>>(matrix_dev, (2.0 / (max - minimo)), w * h * c);
     free(matrix_host);
 }
 

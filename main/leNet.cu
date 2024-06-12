@@ -1,9 +1,5 @@
 #include "leNet.h"
 
-#define EPOCH_NUMBER 4
-#define PARAMETER_FILE "./epoch_2.txt"
-
-
 int main(int argc, char **argv){
 
     /***
@@ -73,7 +69,7 @@ int main(int argc, char **argv){
 
     char filename[100];
     printf("Inserire il nome dei file contenente i parametri della rete: ");
-    scanf("%s", &filename);
+    scanf("%s", filename);
     FILE *fp;
     // if((fp = fopen(PARAMETER_FILE, "r")) == NULL){
     if((fp = fopen(filename, "r")) == NULL){
@@ -93,10 +89,12 @@ int main(int argc, char **argv){
     /***
      * Definizione e allocazione delle matrici e dei target in ingresso.
     */
+#if defined(TEST) || defined(TRAIN)
     mnist_data *data;
     float target[10];
     unsigned int counter = 0;
     int ret;
+#endif
 
 #ifdef TEST
 
@@ -118,11 +116,6 @@ int main(int argc, char **argv){
         exit(1);
     }
     batch_dim = counter;
-    /*
-    Testare quale define vale di più, se quella all'interno del codice sorgente o quella specificata da linea di comando.
-    Se vince quella da linea di comando allora mettere un valore negativo di default e obbligare l'utente a scegliere un valore per il numero di epoche.
-    */
-    // epoch_dim = EPOCH_NUMBER;
     printf("Specificare il nuemro di epoche su cui addestrare la rete: ");
     scanf("%d", &epoch_dim);
     printf("Immagini lette: %d\nDimensione di una epoca: %d\nNumero di epoche: %d", counter, batch_dim, epoch_dim);
@@ -449,6 +442,9 @@ int main(int argc, char **argv){
             cudaMemcpy(prediction, third_fc, sizeof(float) * fc_third_dim, cudaMemcpyDeviceToHost);
 
             summation = 0.0;
+#if defined(USAGE) || defined(TEST)
+            max = -1;
+#endif
             for(int i = 0; i < fc_third_dim; i++) summation += prediction[i];
             for(int i = 0; i < fc_third_dim; i++) {
                 prediction[i] = prediction[i] / summation;
@@ -464,14 +460,13 @@ int main(int argc, char **argv){
 #ifdef TEST
             if(target[prediction_index] != 0) prediction_counter++;
 #endif
-#if defined(TEST) || defined(TRAIN)
+#ifdef TRAIN
             /****
              * Calcoliamo il valore della Loss.
             */
             loss = 0.0;
             for(int i = 0; i < fc_third_dim; i++){
-                if(target)
-                    loss += target[i] * logf(prediction[i]);
+                loss += target[i] * logf(prediction[i]);
             }
             loss = -loss;
 #endif
@@ -523,9 +518,9 @@ int main(int argc, char **argv){
 
             block = {(unsigned int)min(32, out_w), (unsigned int)min(32, out_h)};
             grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y)};
-            matrix_dot_product<<<grid, block>>>(second_fc, second_fc, gdZ1, out_w, out_h);
-            scalar_subtraction<<<grid, block>>>(gdZ1, gdZ1, out_w, out_h);
-            matrix_dot_product<<<grid, block>>>(dZ1, gdZ1, dZ1, out_w, out_h);
+            matrix_dot_product<<<grid, block>>>(second_fc, second_fc, gdZ1, out_w, out_h, 1);
+            scalar_subtraction<<<grid, block>>>(gdZ1, gdZ1, out_w, out_h, 1);
+            matrix_dot_product<<<grid, block>>>(dZ1, gdZ1, dZ1, out_w, out_h, 1);
 
             /****
              * Calcoliamo la derivata dei pesi tra il primo e il secondo livello FC.
@@ -565,9 +560,9 @@ int main(int argc, char **argv){
 
             block = {(unsigned int)min(32, out_w), (unsigned int)min(32, out_h)};
             grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y)};
-            matrix_dot_product<<<grid, block>>>(third_conv, third_conv, gdZ0, out_w, out_h);
-            scalar_subtraction<<<grid, block>>>(gdZ0, gdZ0, out_w, out_h);
-            matrix_dot_product<<<grid, block>>>(dZ0, gdZ0, dZ0, out_w, out_h);
+            matrix_dot_product<<<grid, block>>>(third_conv, third_conv, gdZ0, out_w, out_h, 1);
+            scalar_subtraction<<<grid, block>>>(gdZ0, gdZ0, out_w, out_h, 1);
+            matrix_dot_product<<<grid, block>>>(dZ0, gdZ0, dZ0, out_w, out_h, 1);
 
             /****
              * Calcoliamo la derivata del terzo gruppo di kernel che di dimensioni (5 x 5 x 16), di cui
@@ -620,13 +615,20 @@ int main(int argc, char **argv){
             in_w = 5;
             out_h = in_h;
             out_w = in_w;
-            block = {(unsigned int)out_w, (unsigned int)out_h};
-            grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-            for(int i = 0; i < kernel_num_second_layer; i++){
-                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(second_pool + (i * in_h * in_w), second_pool + (i * in_h * in_w), dP1 + (i * out_h * out_w), out_h, out_w);
-                scalar_subtraction<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP1 + (i * in_w * in_h), dP1 + (i * in_w * in_h), out_w, out_h);
-                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP1 + (i * in_h * in_w), dA3 + (i * in_h * in_w), dP1 + (i * in_h * in_w), out_w, out_h);
-            }
+            
+            block = {(unsigned int)min(32, out_w), (unsigned int)min(32, out_h), (unsigned int)min(kernel_num_second_layer, 1024 / (min(32, out_w) * min(32, out_h)))};
+            grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y), (unsigned int)ceil((float)kernel_num_second_layer / block.z)};
+            matrix_dot_product<<<grid, block>>>(second_pool, second_pool, dP1, out_h, out_w, kernel_num_second_layer);
+            scalar_subtraction<<<grid, block>>>(dP1, dP1, out_w, out_h, kernel_num_second_layer);
+            matrix_dot_product<<<grid, block>>>(dP1, dA3, dP1, out_w, out_h, kernel_num_second_layer);
+            
+            // block = {(unsigned int)out_w, (unsigned int)out_h};
+            // grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+            // for(int i = 0; i < kernel_num_second_layer; i++){
+            //     matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(second_pool + (i * in_h * in_w), second_pool + (i * in_h * in_w), dP1 + (i * out_h * out_w), out_h, out_w);
+            //     scalar_subtraction<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP1 + (i * in_w * in_h), dP1 + (i * in_w * in_h), out_w, out_h);
+            //     matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP1 + (i * in_h * in_w), dA3 + (i * in_h * in_w), dP1 + (i * in_h * in_w), out_w, out_h);
+            // }
 
             /****
              * Derivata rispetto all'uscita del secondo layer di Pooling.
@@ -655,13 +657,20 @@ int main(int argc, char **argv){
             in_w = 10;
             out_h = in_h;
             out_w = in_w;
-            block = {(unsigned int)out_w, (unsigned int)out_h};
-            grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-            for(int i = 0; i < kernel_num_second_layer; i++){
-                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(second_conv + (i * in_w * in_h), second_conv + (i * in_w * in_h), dC1 + (i * out_h * out_w), out_w, out_h);
-                scalar_subtraction<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dC1 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
-                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dC1 + (i * in_h * in_w), dA2 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
-            }
+
+            block = {(unsigned int)min(32, out_w), (unsigned int)min(32, out_h), (unsigned int)min(kernel_num_second_layer, 1024 / (min(32, out_w) * min(32, out_h)))};
+            grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y), (unsigned int)ceil((float)kernel_num_second_layer / block.z)};
+            matrix_dot_product<<<grid, block>>>(second_conv, second_conv, dC1, out_w, out_h, kernel_num_second_layer);
+            scalar_subtraction<<<grid, block>>>(dC1, dC1, out_w, out_h, kernel_num_second_layer);
+            matrix_dot_product<<<grid, block>>>(dC1, dA2, dC1, out_w, out_h, kernel_num_second_layer);
+
+            // block = {(unsigned int)out_w, (unsigned int)out_h};
+            // grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+            // for(int i = 0; i < kernel_num_second_layer; i++){
+            //     matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(second_conv + (i * in_w * in_h), second_conv + (i * in_w * in_h), dC1 + (i * out_h * out_w), out_w, out_h);
+            //     scalar_subtraction<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dC1 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
+            //     matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dC1 + (i * in_h * in_w), dA2 + (i * in_h * in_w), dC1 + (i * in_h * in_w), out_w, out_h);
+            // }
 
             /****
              * Cacoliamo la Full Convolution tra i kernel della seconda convoluzione, F1, e dC1 che è
@@ -714,13 +723,20 @@ int main(int argc, char **argv){
             in_w = 14;
             out_h = in_h;
             out_w = in_w;
-            block = {(unsigned int)out_w, (unsigned int)out_h};
-            grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-            for(int i = 0; i < kernel_num_first_layer; i++){
-                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(first_pool + (i * in_h * in_w), first_pool + (i * in_h * in_w), dP0 + (i * out_h * out_w), out_w, out_h);
-                scalar_subtraction<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP0 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
-                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP0 + (i * in_h * in_w), dA1 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
-            }
+
+            block = {(unsigned int)min(32, out_w), (unsigned int)min(32, out_h), (unsigned int)min(kernel_num_first_layer, 1024 / (min(32, out_w) * min(32, out_h)))};
+            grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y), (unsigned int)ceil((float)kernel_num_first_layer / block.z)};
+            matrix_dot_product<<<grid, block>>>(first_pool, first_pool, dP0, out_w, out_h, kernel_num_first_layer);
+            scalar_subtraction<<<grid, block>>>(dP0, dP0, out_w, out_h, kernel_num_first_layer);
+            matrix_dot_product<<<grid, block>>>(dP0, dA1, dP0, out_w, out_h, kernel_num_first_layer);
+
+            // block = {(unsigned int)out_w, (unsigned int)out_h};
+            // grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+            // for(int i = 0; i < kernel_num_first_layer; i++){
+            //     matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(first_pool + (i * in_h * in_w), first_pool + (i * in_h * in_w), dP0 + (i * out_h * out_w), out_w, out_h);
+            //     scalar_subtraction<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP0 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
+            //     matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dP0 + (i * in_h * in_w), dA1 + (i * in_h * in_w), dP0 + (i * in_h * in_w), out_w, out_h);
+            // }
 
             /****
              * Derivata rispetto all'uscita del primo layer di Pooling.
@@ -749,13 +765,20 @@ int main(int argc, char **argv){
             in_w = 28;
             out_h = in_h;
             out_w = in_w;
-            block = {(unsigned int)out_w, (unsigned int)out_h};
-            grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
-            for(int i = 0; i < kernel_num_first_layer; i++){
-                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(first_conv + (i * in_w * in_h), first_conv + (i * in_w * in_h), dC0 + (i * out_h * out_w), out_w, out_h);
-                scalar_subtraction<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dC0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
-                matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dC0 + (i * in_w * in_h), dA0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
-            }
+
+            block = {(unsigned int)min(32, out_w), (unsigned int)min(32, out_h), (unsigned int)min(kernel_num_first_layer, 1024 / (min(32, out_w) * min(32, out_h)))};
+            grid = {(unsigned int)ceil((float)out_w / block.x), (unsigned int)ceil((float)out_h / block.y), (unsigned int)ceil((float)kernel_num_first_layer / block.z)};
+            matrix_dot_product<<<grid, block>>>(first_conv, first_conv, dC0, out_w, out_h, kernel_num_first_layer);
+            scalar_subtraction<<<grid, block>>>(dC0, dC0, out_w, out_h, kernel_num_first_layer);
+            matrix_dot_product<<<grid, block>>>(dC0, dA0, dC0, out_w, out_h, kernel_num_first_layer);
+            
+            // block = {(unsigned int)out_w, (unsigned int)out_h};
+            // grid = {(unsigned int)(block.x / 32 + 1), (unsigned int)(block.y / 32 + 1)};
+            // for(int i = 0; i < kernel_num_first_layer; i++){
+            //     matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(first_conv + (i * in_w * in_h), first_conv + (i * in_w * in_h), dC0 + (i * out_h * out_w), out_w, out_h);
+            //     scalar_subtraction<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dC0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
+            //     matrix_dot_product<<<grid, block/* , 0, stream[i%NUMBER_OF_STREAM] */>>>(dC0 + (i * in_w * in_h), dA0 + (i * in_w * in_h), dC0 + (i * in_w * in_h), out_w, out_h);
+            // }
 
             /****
              * Calcoliamo la derivata del secondo gruppo di kernel di dimensioni (5 x 5), di cui
@@ -781,29 +804,29 @@ int main(int argc, char **argv){
                 Fine calcolo delle derivate.
                 Inizio aggiornamento dei parametri
             */
-            block = {1024};
-            grid = {(5 * 5 * 6) / 1024 + 1};
-            matrix_scalar_product<<<grid, block>>>(dF0, LEARNING_RATE, 5 * 5 * 6, 1);
+            block = {(unsigned int)min(1024, 5 * 5 * 6)};
+            grid = {(unsigned int)ceil((float)(5 * 5 * 6) / block.x)};
+            matrix_scalar_product<<<grid, block>>>(dF0, LEARNING_RATE, 5 * 5 * 6);
             subtraction<<<grid, block>>>(kernels_first_layer_dev, kernels_first_layer_dev, dF0, 5 * 5 * 6);
 
-            block = {1024};
-            grid = {(5 * 5 * 6 * 16) / 1024 + 1};
-            matrix_scalar_product<<<grid, block>>>(dF1, LEARNING_RATE, 5 * 5 * 6 * 16, 1);
+            block = {(unsigned int)min(1024, 5 * 5 * 6 * 16)};
+            grid = {(unsigned int)ceil((float)(5 * 5 * 6 * 16) / block.x)};
+            matrix_scalar_product<<<grid, block>>>(dF1, LEARNING_RATE, 5 * 5 * 6 * 16);
             subtraction<<<grid, block>>>(kernels_second_layer_dev, kernels_second_layer_dev, dF1, 5 * 5 * 6 * 16);
 
-            block = {1024};
-            grid = {(5 * 5 * 6 * 120) / 1024 + 1};
-            matrix_scalar_product<<<grid, block>>>(dF2, LEARNING_RATE, 5 * 5 * 6 * 120, 1);
-            subtraction<<<grid, block>>>(kernels_third_layer_dev, kernels_third_layer_dev, dF2, 5 * 5 * 6 * 120);
+            block = {(unsigned int)min(1024, 5 * 5 * 16 * 120)};
+            grid = {(unsigned int)ceil((float)(5 * 5 * 16 * 120) / block.x)};
+            matrix_scalar_product<<<grid, block>>>(dF2, LEARNING_RATE, 5 * 5 * 16 * 120);
+            subtraction<<<grid, block>>>(kernels_third_layer_dev, kernels_third_layer_dev, dF2, 5 * 5 * 16 * 120);
 
-            block = {1024};
-            grid = {(84 * 120) / 1024 + 1};
-            matrix_scalar_product<<<grid, block>>>(dW1, LEARNING_RATE, 84 * 120, 1);
+            block = {(unsigned int)min(1024, 84 * 120)};
+            grid = {(unsigned int)ceil((float)(84 * 120) / block.x)};
+            matrix_scalar_product<<<grid, block>>>(dW1, LEARNING_RATE, 84 * 120);
             subtraction<<<grid, block>>>(fc_first_layer_dev, fc_first_layer_dev, dW1, 84 * 120);
 
-            block = {1024};
-            grid = {(10 * 84) / 1024 + 1};
-            matrix_scalar_product<<<grid, block>>>(dW2, LEARNING_RATE, 10 * 84, 1);
+            block = {(unsigned int)min(1024, 10 * 84)};
+            grid = {(unsigned int)ceil((float)(10 * 84) / block.x)};
+            matrix_scalar_product<<<grid, block>>>(dW2, LEARNING_RATE, 10 * 84);
             subtraction<<<grid, block>>>(fc_second_layer_dev, fc_second_layer_dev, dW2, 10 * 84);
 
             /****
@@ -837,8 +860,7 @@ int main(int argc, char **argv){
 #endif
 #ifdef TIME_TEST
 
-            gettimeofday(&partial, NULL);
-            u_sec = (partial.tv_sec - start.tv_sec) * 1000000 + partial.tv_usec - start.tv_usec;
+            u_sec = stop_timer(&start, &stop);
             fprintf(time_file_test, "%02d:%02d:%03d:%03d\n", (int)(u_sec / 60000000), (int)(u_sec / 1000000) % 60, (int)(u_sec / 1000) % 1000, (int)(u_sec % 1000));
             fflush(time_file_test);
 
@@ -875,11 +897,11 @@ int main(int argc, char **argv){
         
     }
 
-#if defined(TEST) && !defined(USAGE)
+#ifdef TEST
 
     printf("Valori predetti correttamente, su %d: %d\n", batch_dim, prediction_counter);
 
-#elif defined(TEST)
+#elif USAGE
 
     printf("Valore predetto: %d\n", prediction_index);
 
@@ -904,7 +926,7 @@ int main(int argc, char **argv){
     free(fc_second_layer);
     free(prediction);
     
-#ifndef USAGE
+#if defined(TEST) || defined(TRAIN)
 
     free(data);
 

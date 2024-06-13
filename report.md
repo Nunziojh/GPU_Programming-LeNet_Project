@@ -7,6 +7,7 @@
 ### Introduction
 The goal of this project is to implement the LeNet-5 convolutional neural network using the CUDA programming model. 
 The LeNet-5 architecture was introduced by Yann LeCun in 1998 and is widely used for handwritten digit recognition.
+
 The aim of this work is to develop an effective neural network for digit recognition, optimized by leveraging GPU architecture to parallelize computational calculation.
 
 <div id="Figure 1" align="center">
@@ -30,7 +31,7 @@ The project is essentially divided into two phases: the first involves implement
 
 We used a bottom up design starting from the composition of the library functions with the main blocks of the network. For each function we tested the correctness of the results and the performance of the implementation. 
 
-Our approach for the testing part started from the unit tests for each function and ones added to the main code, `backward.cu`, implementing the integration tests. All the functions writed in this part are in the library `gpu_functions_base.cu`.
+Our approach for the testing part started from the unit tests for each function and ones added to the main code, `leNet.cu`, implementing the integration tests. All the functions writed in this part are in the library `leNet.h`.
 
 ##### **Dataset**
 For the training and the test of the network we used the MNIST Dataset, a database of handwritten digits has a training set of 60.000 samples, and a test set of 10.000 samples. The managing of the dataset is in `mnist.h`. With this header file each sample is saved in a struct of the type mnist_data.
@@ -54,14 +55,14 @@ For the forward we strictly followed all the layers of the network as described 
     </figure>  
 </div>
 
-For the backward we calculated by hand all the derivatives with respect to the loss for each layer from the output to the input.
+For the backward pass, we calculated by hand all the derivatives with respect to the loss for each layer, from the output to the input.
 
-As nomenclatures to indicate the various parts of our network we decided to use respectively the C for the convolutions, the P for the pooling, the A for the results from the activations, the W for the weight matrices, the F for the filters/kernels and the Z as the results of the phases fully connected. All followed by an increasing number referring to their position in the forward.
+In our network, we used specific nomenclature for different parts: C for convolutions, P for pooling, A for activation results, W for weight matrices, F for filters/kernels, and Z for fully connected layer results. Each of these is followed by an increasing number corresponding to their position in the forward pass.
 
 The backward phase started with the calculation of the derivative of Z2 with respect to the Loss (called briefly dZ2).
-In the file `backward.cu` before each code block there is described the used formula and the dimensions for all matrices there are used.
+In the file `leNet.cu`, each code block is preceded by a description of the formula used and the dimensions of all the matrices involved.
 
-At the end of this phase there is the update of the parameters based on the learning rate alfa. We found that the best results in the network training using a value for the hyperparamenter alfa of 0.01. The hyperparameters and the constant values used for the code are present in the header file `gpu_functions.h`.
+At the end of this phase, the parameters are updated based on the learning rate alpha. We found that the best training results for the network were achieved using a value for the hyperparamenter alfa of 0.01. The hyperparameters and the constant values used for the code are present in the header file `leNet.h`.
 
 The results of this first part are pretty good, in fact we obtained 90% of accuracy on test dataset of MNIST after 4 epochs of training.
 
@@ -69,7 +70,9 @@ The results of this first part are pretty good, in fact we obtained 90% of accur
 
 For the optimization part we used all the techiniques learned at GPU Programming course and tested which one perfome better in our code. 
 
-As developing method for an improved version, we take individually all the functions in `gpu_functions_base.cu` and we implemented different techniques for managing the memory usage and the number of threads that works in parallel. As first evaluation criterion we used the timing calculating the differences between the various implementation. For timing we used two tyes of libraries, `<sys/time.h>` in linux for testing on the JetsonNano and `<time.h>` for windows on NVIDIA GeForce MX250, automatically managed by the define with the define option that change based on the __ linux__ macro.
+As developing method for an improved version, we take individually all the base gpu functions of the first part and we implemented different techniques for managing the memory usage and the number of threads that works in parallel.
+
+As first evaluation criterion we used the timing calculating the differences between the various implementation. For timing we used two tyes of libraries, `<sys/time.h>` in linux for testing on the JetsonNano and `<time.h>` for windows on NVIDIA GeForce MX250, automatically managed by the define with the define option that change based on the __ linux__ macro.
 
 The optimization work was specifically tailored for this code. In particular, working with relatively small inputs, simpler optimizations were preferred over more complex ones. This is because the overhead of some additional operations, done to best parallelize resources and work, in some cases, actually worsened performance. Since the computation is fast, the addition of this overhead is decisive for the code's execution time.
 
@@ -77,7 +80,7 @@ The optimization work was specifically tailored for this code. In particular, wo
 The main optimization techniques we used are:
 * *Minimization of code operation*: involves optimizing arithmetic and logic operations to reduce the computational load and improve performance. This optimization strategy is crucial because even though GPUs are designed for parallel execution of a large number of operations, the type and number of operations can still impact the overall efficiency.
     
-    Example of convolution in `gpu_functions.cu`:
+    Example of `convolution`:
             
     ``` C
     for(i = 0; i < kernel_dim; i++){
@@ -98,7 +101,7 @@ The main optimization techniques we used are:
 
 * *Using internal registers*: is a powerful optimization technique due to their extremely low latency and high throughput. Registers are the fastest type of memory on a GPU, and utilizing them effectively significantly enhance the performance of the code especially for values ​​reused multiple times in the code or simply as temporary registers.
     
-    Example of convolution in `gpu_functions.cu`:
+    Example:
 
     ``` C
     int index_data = idy * in_dim + idx;
@@ -129,7 +132,7 @@ The main optimization techniques we used are:
     
     In our code we initialized with the input matrices optimizing the multiple accesses to same values from different threads.
 
-    Example of `gpu_functions.cu`:
+    Example of `convolution`:
 
     ```C
     extern __shared__ float s_m[];
@@ -155,7 +158,7 @@ The main optimization techniques we used are:
 ### Code analysis
 The main files of the project are: `leNet.cu`, `leNet.h`.
 
-**`leNet.cu`**<!-- CAMBIARE IN LENET -->
+**`leNet.cu`**
 This file contains the complete implementation of the LeNet-5 architecture. It includes various compilation directives tailored to different usage requirements. All values are parameterized, and depending on the specific directives used, the values of the variables are defined accordingly. The compilation directives present are:
 * **TRAIN**: In this case will be taken for performing the training the files from the folder MNIST_Dataset: `train-images.idx3-ubyte` and `train-labels-idx1-ubyte`. Typically the value of epoch_dim and batch_dim are set respectively to 4 and 60,000.
 * **TEST**: compiling with the TEST directive only the forward is considered. The definition of `PARAMETER_FROM_FILE` is automatically defined because in this case they will be used the network parameters already trained saved in the file whose name is defined in `PARAMETER_FILE`. For the test part will be taken from the folder `MNIST_Dataset` the files: `t10k-images.idx3-ubyte` and `t10k-labels-idx1-ubyte`. The value of *epoch_dim* and *batch_dim* are set respectively to 1 and 10,000.

@@ -13,11 +13,11 @@ The aim of this work is to develop an effective neural network for digit recogni
 <div id="Figure 1" align="center">
     <figure>
      <img src="Report_images\LeNet5_Architecture.jpg" width="497" height="152">
-     <figcaption>Figura 1: LeNet-5 Architecture</figcaption>
+     <figcaption>Figure 1: LeNet-5 Architecture</figcaption>
     </figure>  
 </div>
 
-The network consists of 7 layers, including 3 convolutional layers, 2 subsampling layers, and 2 fully connected layers. The input image size is of 28x28 readapt at 32x32 for our net. The output is a 10-dimensional vector representing the probabilities of the input image belonging to each of the 10 classes. The network was trained on the MNIST dataset, which consists of 60,000 training images and 10,000 test images of handwritten digits. 
+The network consists of 7 layers, including 3 convolutional layers, 2 subsampling layers, and 2 fully connected layers. The input image size is of 28x28 readapt at 32x32 for our net. The output is a 10-dimensional vector representing the probabilities of the input image belonging to each of the 10 classes. The network was trained on the MNIST dataset, which consists of 60.000 training images and 10.000 test images of handwritten digits. 
 
 ### Implementation
 
@@ -51,7 +51,7 @@ For the forward we strictly followed all the layers of the network as described 
 <div id="Figure 2" align="center">
     <figure>
      <img src="Report_images\LeNet5_architecture_table.jpg" width="503" height="257">
-     <figcaption>Figura 2: LeNet-5 Architecture table</figcaption>
+     <figcaption>Figure 2: LeNet-5 Architecture table</figcaption>
     </figure>  
 </div>
 
@@ -121,7 +121,7 @@ The main optimization techniques we used are:
     <!-- 
     ESEMPIO IL TAILING NELLA CONVOLUTION PERCHE NON ANDIAMO MAI FUORI SPENDIAMO MEMORIA E TEMPO PER SALVARE DATI IN MEMORIA.
     STREAM NON PORTANO GUADAGNI IN TERMINI DI TEMPO MAGARI IN TEMPO DI RISPORSE. LA SUDDIVISIONE DI ORGANIZZAZIONE DEI THREAD IN STREAM, PER POI EFFETTUARE POCA COMPUTAZIONE E POI ASPETTARE LA RISINCRONIZZAZIONE.
-    I FOR NEI KERNEL IN GENERE NON SONO UNA SCELTA SAGGIA, MA NEL NOSTRO CASO  E' MEGLIO
+    I FOR NEI KERNEL IN GENERE NON SONO UNA SCELTA SAGGIA, MA NEL NOSTRO CASO E' MEGLIO
     -->
     However this technique is not very useful in our case since the overhead for the creation and the destruction of the streams and their synchronization at the end of each function block, slowing down the performance of the code.
 
@@ -160,8 +160,9 @@ The main files of the project are: `leNet.cu`, `leNet.h`.
 
 **`leNet.cu`**
 This file contains the complete implementation of the LeNet-5 architecture. It includes various compilation directives tailored to different usage requirements. All values are parameterized, and depending on the specific directives used, the values of the variables are defined accordingly. The compilation directives present are:
-* **TRAIN**: In this case will be taken for performing the training the files from the folder MNIST_Dataset: `train-images.idx3-ubyte` and `train-labels-idx1-ubyte`. Typically the value of epoch_dim and batch_dim are set respectively to 4 and 60,000.
-* **TEST**: compiling with the TEST directive only the forward is considered. The definition of `PARAMETER_FROM_FILE` is automatically defined because in this case they will be used the network parameters already trained saved in the file whose name is defined in `PARAMETER_FILE`. For the test part will be taken from the folder `MNIST_Dataset` the files: `t10k-images.idx3-ubyte` and `t10k-labels-idx1-ubyte`. The value of *epoch_dim* and *batch_dim* are set respectively to 1 and 10,000.
+
+* **TRAIN**: In this case will be taken for performing the training the files from the folder MNIST_Dataset: `train-images.idx3-ubyte` and `train-labels-idx1-ubyte`. Typically the value of epoch_dim and batch_dim are set respectively to 4 and 60.000.
+* **TEST**: compiling with the TEST directive only the forward is considered. The definition of `PARAMETER_FROM_FILE` is automatically defined because in this case they will be used the network parameters already trained saved in the file whose name is defined in `PARAMETER_FILE`. For the test part will be taken from the folder `MNIST_Dataset` the files: `t10k-images.idx3-ubyte` and `t10k-labels-idx1-ubyte`. The value of *epoch_dim* and *batch_dim* are set respectively to 1 and 10.000.
 * **TIME_TEST**: this directive was created to address the need for testing the execution time of the forward and backward passes. Specifically, the execution time will be measured and recorded in a file for *batch_dim* iterations, which is set generally to 1000. Subsequently, the average of these values will be calculated to provide a more reliable method for comparing different versions.
 * **USAGE**: this directive enables the compilation in a way that allows the use of the file `paint.py` to manually input a number and send it to the network. This directive permits using only the forward pass and utilizes the `PARAMETER_FROM_FILE` defined in `PARAMETER_FILE`. Unlike the *TEST* directive, it performs the prediction without having the correct label for comparison, and it sets *batch_dim* to 1.
 * **CHECK_PARAMETER_CORRECTNESS**: is a compilation directive used for debug the correctness of parameters taking from file or randomly generated.
@@ -169,8 +170,9 @@ This file contains the complete implementation of the LeNet-5 architecture. It i
 
 **`leNet.h`**
 
-In leNet.h, there are all the cascade inclusion 
-In gpu_functions.cu, the entire library of GPU functions created for the network is present. The prototypes of these functions are included in the corresponding header file, along with constants used in the code.
+In leNet.h, there are the inclusions of our libraries, for device `gpu_functions.cu` and host `cpu_functions.cu`, the inclusions for the main libraries used and the definition of some constant values and some compilation directives.
+
+In *gpu_functions.cu*, the entire library of GPU functions created for the network is present. The prototypes of these functions are included in the corresponding header file, along with constants used in the code.
 Optimization of library functions has gone through multiple versions, we will analyze each function below.
 
 #### Convolution
@@ -218,8 +220,7 @@ Convolution is one of the most used functions within our code. In order to optim
 
 *   *v3* : Enhanced version of that with the shared memory.
 
-    The difference is the use of a supplementary register new_in_dim used in the code and also in the 
-initialization to zero of the shared memory.
+    The difference is the use of a supplementary register new_in_dim used in the code and also in the initialization to zero of the shared memory.
 
     ``` C
     int new_in_dim = in_dim + 2 * padding_f;
@@ -238,14 +239,21 @@ initialization to zero of the shared memory.
 
     After shifting the start index of the kernel to use based on the z of the output matrix we are working on, we iterate with three nested loops over the entire kernel matrix. We increment a counter register with the product of an input value and a kernel value. At the end, we assign the value to the output matrix. We ensure not to exceed the dimensions of the input matrix only on the x and y axes because we have the same number of values on the third axis.
 
-    This version has also another for for the case of n out channels, `convolution_forNOutChannels`
+    This version has also another function for the case of n out channels, `convolution_forNOutChannels`, and another one for the full convolution, `full_Convolution`.
 
 *   *v5* : Monolithic version of convolution with shared memory.
 
     The previous version of convolution with the improvement of the shared memory. The last version of this function.
 
-    This version has also another for for the case of n out channels, `convolution_forNOutChannels_shared`
+    This version has also another function for the case of n out channels, `convolution_forNOutChannels_shared`.
 
+    <div id="Figure 3" align="center">
+        <figure>
+        <img src="Report_images\grafico_tempi_convoluzione.jpg" width="427" height="237">
+        <figcaption>Figure 3: Graph average times of the convolution versions for the Forward</figcaption>
+        </figure>  
+    </div>
+    
 #### Matrix Product
 
 The development of matrix multiplication requires multiple functions depending on the usage needs. 
@@ -267,8 +275,8 @@ The pooling functions used in this project are the *average pooling* used during
 * **Inverse average pooling** is an up-sampling operation with the aim of reverse the effect of average pooling by distributing the values from the smaller feature map back into a larger output feature map. In this function each value in the input matrix is multiplied by the proportional value relative to all values within the Pooling region.
 The resulting matrix corresponds to the matrix of derivatives of the Loss function with respect to the inputs.
 This function has two improved versions: 
-    - v2: has a vector of internal register that mantain the values inside the pooling region, avoiding multiple read to the same values 
-    - v3: is a monolitic version of the v2, considering 3D input matrices.
+    - *v2*: has a vector of internal register that mantain the values inside the pooling region, avoiding multiple read to the same values 
+    - *v3*: is a monolitic version of the v2, considering 3D input matrices.
 
 
 #### Activation function
@@ -295,15 +303,17 @@ The memory usage efficiency enhancement with shared memory could not make any im
 
 In the first phase of our project, implementing the LeNet-5 convolutional neural network from scratch, we achieved an accuracy of 90% on the MNIST test dataset after training for 4 epochs. This was accomplished using the TEST directive, which allowed us to validate the network's performance on unseen data.
 
-For the second phase, focused on optimization, we applied various techniques to enhance the efficiency of our CUDA implementation. Our optimized code demonstrated a significant improvement in performance. Specifically, the execution speed of the optimized version was 8 times faster compared to the base implementation. This substantial increase in speed was verified through detailed timing measurements, ensuring a reliable and consistent comparison between different versions of our implementation.
+For the second phase, focused on optimization, we applied various techniques to enhance the efficiency of our CUDA implementation. Our optimized code demonstrated a significant improvement in performance. Specifically, the execution speed of the optimized version was 12 times faster compared to the base implementation. This substantial increase in speed was verified through detailed timing measurements, ensuring a reliable and consistent comparison between different versions of our implementation.
 
 <!--
 (SHOWING THE OUTPUT OF THE PROFILING WITH SOME PLOTS)
+
+TRY DEMO ON OLD_PROJECT
 -->
 
 <!-- #### Accuracy -->
 
-<!-- #### Profiling-->
+<!-- #### Profiling -->
 
 ### Conclusion
 

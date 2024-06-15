@@ -1,8 +1,27 @@
 # LeNet-5 - CUDA implementation
 **Report for the GPU Programming course**
-### Authors
+
+## Authors
 - **Pietro Mazza** - *s314897*
 - **Nunzio Messineo** - *s315067*
+
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Implementation Overview](#implementation)
+    - [Part I - Implementation of LeNet-5](#implementation-of-lenet-5)
+        - [MNIST Dataset](#dataset)
+    - [Part II - Code Optimization](#optimizing-the-code)
+        - [Optimization techiniques](#optimization-techiniques)
+- [Code analysis](#code-analysis)
+    - [Convolution](#convolution)
+    - [Matrix Product](#matrix-product)
+    - [Pooling](#pooling)
+    - [Activation function](#activation-function)
+- [Demo](#demo)
+- [Conclusion](#conclusion)
+
 
 ### Introduction
 The goal of this project is to implement the LeNet-5 convolutional neural network using the CUDA programming model. 
@@ -27,13 +46,13 @@ The implementation of the LeNet-5 network consists of two main parts: the forwar
 
 The project is essentially divided into two phases: the first involves implementing a functional neural network, and the second focuses on optimizing and analyzing the code.
 
-#### Part I: Implementation of LeNet-5
+#### Implementation of LeNet-5
 
 We used a bottom up design starting from the composition of the library functions with the main blocks of the network. For each function we tested the correctness of the results and the performance of the implementation. 
 
 Our approach for the testing part started from the unit tests for each function and ones added to the main code, `leNet.cu`, implementing the integration tests. All the functions writed in this part are in the library `leNet.h`.
 
-##### **Dataset**
+##### Dataset
 For the training and the test of the network we used the MNIST Dataset, a database of handwritten digits has a training set of 60.000 samples, and a test set of 10.000 samples. The managing of the dataset is in `mnist.h`. With this header file each sample is saved in a struct of the type mnist_data.
 
 ``` C
@@ -66,7 +85,7 @@ At the end of this phase, the parameters are updated based on the learning rate 
 
 The results of this first part are pretty good, in fact we obtained 90% of accuracy on test dataset of MNIST after 4 epochs of training.
 
-#### Part 2: Optimizing the code
+#### Optimizing the code
 
 For the optimization part we used all the techiniques learned at GPU Programming course and tested which one perfome better in our code. 
 
@@ -159,6 +178,7 @@ The main optimization techniques we used are:
 The main files of the project are: `leNet.cu`, `leNet.h`.
 
 **`leNet.cu`**
+
 This file contains the complete implementation of the LeNet-5 architecture. It includes various compilation directives tailored to different usage requirements. All values are parameterized, and depending on the specific directives used, the values of the variables are defined accordingly. The compilation directives present are:
 
 * **TRAIN**: In this case will be taken for performing the training the files from the folder MNIST_Dataset: `train-images.idx3-ubyte` and `train-labels-idx1-ubyte`. Typically the value of epoch_dim and batch_dim are set respectively to 4 and 60.000.
@@ -247,13 +267,15 @@ Convolution is one of the most used functions within our code. In order to optim
 
     This version has also another function for the case of n out channels, `convolution_forNOutChannels_shared`.
 
-    <div id="Figure 3" align="center">
-        <figure>
-        <img src="Report_images\grafico_tempi_convoluzione.jpg" width="427" height="237">
-        <figcaption>Figure 3: Graph average times of the convolution versions for the Forward</figcaption>
-        </figure>  
-    </div>
-    
+ Within the network, we limit the use of convolution operations to three types: one for the forward pass and two for the backward pass, one for computing dA and the other for computing dF. We evaluated the performance for each version we tested.
+
+<div id="Figure 3" align="center">
+    <figure>
+    <img src="Report_images\grafico_tempi_convoluzione.jpg" width="427" height="237">
+    <figcaption>Figure 3: Graph average times of the convolution versions for the Forward</figcaption>
+    </figure>  
+</div>
+
 #### Matrix Product
 
 The development of matrix multiplication requires multiple functions depending on the usage needs. 
@@ -281,10 +303,11 @@ This function has two improved versions:
 
 #### Activation function
 
-Following the LeNet-5 architecture we implemented the tanh. We implemented only two versions of this function, the base one and the optmized one. The second has as improvement only the usage of a different formulation of the same equation in a way that we can perform less operations.
+Following the LeNet-5 architecture we implemented the **tanh**. We implemented only two versions of this function, the base one and the optmized one. The second has as improvement only the usage of a different formulation of the same equation in a way that we can perform less operations.
 
 *base version:*
 ``` C
+float val = in[idy * w + idx];
 float p = expf(val);
 float m = expf(-val);
 
@@ -299,23 +322,43 @@ in[idy * w + idx] = (v - 1) / (v + 1);
 ```
 The memory usage efficiency enhancement with shared memory could not make any improvements since for this function only one write and one read access are made.
 
-### Results
+### Demo
+
+Within the *demo folder*, we developed a Python script, `paint.py` that allows users to draw numbers and send them to the trained network for testing. The images produced by the script closely resemble those in the MNIST dataset, as shown in the figures below. However, we observe a slightly lower accuracy compared to the results obtained from the test dataset.
+
+<!-- PRENDERE IMMAGINE DALL'ULTIMA VERSIONE DI PAINT -->
+
+<table>
+  <tr>
+    <td>
+      <figure>
+        <img src="Report_images\draw_from_script.png" width="140" height="140">
+        <figcaption>Figure 4: Draw captured with <code>paint.py</code> of the number 5</figcaption>
+      </figure>
+    </td>
+    <td>
+      <figure>
+        <img src="Report_images\mnist_image_sample.png" width="140" height="140">
+        <figcaption>Figure 5: Sample image from MNIST Dataset of the number 5</figcaption>
+      </figure>
+    </td>
+  </tr>
+</table>
+
+### Conclusion
+<!--Results-->
 
 In the first phase of our project, implementing the LeNet-5 convolutional neural network from scratch, we achieved an accuracy of 90% on the MNIST test dataset after training for 4 epochs. This was accomplished using the TEST directive, which allowed us to validate the network's performance on unseen data.
 
 For the second phase, focused on optimization, we applied various techniques to enhance the efficiency of our CUDA implementation. Our optimized code demonstrated a significant improvement in performance. Specifically, the execution speed of the optimized version was 12 times faster compared to the base implementation. This substantial increase in speed was verified through detailed timing measurements, ensuring a reliable and consistent comparison between different versions of our implementation.
 
-<!--
-(SHOWING THE OUTPUT OF THE PROFILING WITH SOME PLOTS)
 
-TRY DEMO ON OLD_PROJECT
--->
 
 <!-- #### Accuracy -->
 
 <!-- #### Profiling -->
 
-### Conclusion
+<!-- ### Conclusion -->
 
 # Bibliography
 

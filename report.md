@@ -290,15 +290,32 @@ The functions created are:
 
 We managed to obtain an optimized version with improved memory usage through shared memory only for the first three, since in other cases it would only lead to a performance degradation as there is only one write and one read access for the data. All of this function are present in the *matrix_product folder*.
 
+<div id="Figure 4" align="center">
+    <figure>
+    <img src="Report_images\avg_matrix_product.png" width="320" height="240">
+    <figcaption>Figure 4: Graph average times of the matrices product versions</figcaption>
+    </figure>  
+</div>
+
 #### Pooling
 
 The pooling functions used in this project are the *average pooling* used during the forward phase and the *inverse average pooling* for the backward phase. 
 * **Average pooling** is a down-sampling operation used to reduce the spatial dimensions of the input while preserving important information. In this function we calculate the average of the four values inside the sliding pooling window, and then we put that value in the corrispondent cell in the output matrix.
+This function has one improved version:
+    - *v2*: monolithic version considering 3D input matrices.
 * **Inverse average pooling** is an up-sampling operation with the aim of reverse the effect of average pooling by distributing the values from the smaller feature map back into a larger output feature map. In this function each value in the input matrix is multiplied by the proportional value relative to all values within the Pooling region.
 The resulting matrix corresponds to the matrix of derivatives of the Loss function with respect to the inputs.
 This function has two improved versions: 
     - *v2*: has a vector of internal register that mantain the values inside the pooling region, avoiding multiple read to the same values 
     - *v3*: is a monolitic version of the v2, considering 3D input matrices.
+
+<div id="Figure 5" align="center">
+<figure>
+<img src="Report_images\avg_pooling.png" width="320" height="240">
+<figcaption>Figure 4: Graph average times of the avg pooling and inverse avg pooling versions</figcaption>
+</figure>  
+</div>
+
 
 
 #### Activation function
@@ -326,20 +343,18 @@ The memory usage efficiency enhancement with shared memory could not make any im
 
 Within the *demo folder*, we developed a Python script, `paint.py` that allows users to draw numbers and send them to the trained network for testing. The images produced by the script closely resemble those in the MNIST dataset, as shown in the figures below. However, we observe a slightly lower accuracy compared to the results obtained from the test dataset.
 
-<!-- PRENDERE IMMAGINE DALL'ULTIMA VERSIONE DI PAINT -->
-
 <table>
   <tr>
     <td>
       <figure>
         <img src="Report_images\draw_from_script.png" width="140" height="140">
-        <figcaption>Figure 4: Draw captured with <code>paint.py</code> of the number 5</figcaption>
+        <figcaption>Figure 5: Draw captured with <code>paint.py</code> of the number 5</figcaption>
       </figure>
     </td>
     <td>
       <figure>
         <img src="Report_images\mnist_image_sample.png" width="140" height="140">
-        <figcaption>Figure 5: Sample image from MNIST Dataset of the number 5</figcaption>
+        <figcaption>Figure 6: Sample image from MNIST Dataset of the number 5</figcaption>
       </figure>
     </td>
   </tr>

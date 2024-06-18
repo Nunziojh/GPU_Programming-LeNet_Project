@@ -45,16 +45,6 @@ __global__ void matrix_product_transpose(float *m1, float *m2, float *output, in
     }
 }
 
-/*__global__ void matrix_dot_product(float *m1, float *m2, float *output, int width, int height){
-    int idx = blockDim.x * blockIdx.x + threadIdx.x;
-    int idy = blockDim.y * blockIdx.y + threadIdx.y;
-
-    if(idx < width && idy < height){
-        int index = idy * width + idx;
-        output[index] = m1[index] * m2[index];
-    }
-}*/
-
 __global__ void matrix_dot_product(float *m1, float *m2, float *output, int width, int height, int depth){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int idy = blockDim.y * blockIdx.y + threadIdx.y;
@@ -66,16 +56,6 @@ __global__ void matrix_dot_product(float *m1, float *m2, float *output, int widt
     }
 }
 
-/*__global__ void matrix_scalar_product(float *in_out, float scalar, int width, int height){
-    int idx = blockDim.x * blockIdx.x + threadIdx.x;
-    int idy = blockDim.y * blockIdx.y + threadIdx.y;
-
-    if(idx < width && idy < height){
-        int index = idy * width + idx;
-        in_out[index] = in_out[index] * scalar;
-    }
-}*/
-
 __global__ void matrix_scalar_product(float *in_out, float scalar, int dim){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -83,17 +63,6 @@ __global__ void matrix_scalar_product(float *in_out, float scalar, int dim){
         in_out[idx] = in_out[idx] * scalar;
     }
 }
-
-/*__global__ void matrix3D_scalar_product(float *in_out, float scalar, int width, int height){
-    int c = blockIdx.x;
-    int idx = threadIdx.x;
-    int idy = threadIdx.y;
-
-    if(idx < width && idy < height){
-        int index = idy * width + idx + c * width * height;
-        in_out[index] = in_out[index] * scalar;
-    }
-}*/
 
 __global__ void matrix3D_scalar_product(float *in_out, float scalar, int width, int height, int depth){
     int idx = blockDim.x * blockIdx.x + threadIdx.x;

@@ -168,10 +168,11 @@ __host__ void load_example_to_device(mnist_data data, float *img_dev, float *tar
     for(int i = 0; i < 32; i++){
         for(int j = 0; j < 32; j++){
             if(i < 2 || i > 29 || j < 2 || j > 29){
-                tmp[i * 32 + j] = 0;
+                tmp[i * 32 + j] = -1;
             }
             else{
-                tmp[i * 32 + j] = (float)(data.data[i - 2][j - 2]);
+                // tmp[i * 32 + j] = (float)(data.data[i - 2][j - 2]);
+                tmp[i * 32 + j] = (float)(data.data[i - 2][j - 2]) * 2 - 1;//     ---MODIFIED---
             }
         }
     }

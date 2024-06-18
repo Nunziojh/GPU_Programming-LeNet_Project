@@ -83,7 +83,7 @@ In the file `leNet.cu`, each code block is preceded by a description of the form
 
 At the end of this phase, the parameters are updated based on the learning rate alpha. We found that the best training results for the network were achieved using a value for the hyperparamenter alfa of 0.01. The hyperparameters and the constant values used for the code are present in the header file `leNet.h`.
 
-The results of this first part are pretty good, in fact we obtained 90% of accuracy on test dataset of MNIST after 4 epochs of training.
+The results of this first part are pretty good, in fact we obtained 90% of accuracy on test dataset of MNIST after 6 epochs of training.
 
 #### Optimizing the code
 
@@ -348,7 +348,7 @@ Within the *demo folder*, we developed a Python script, `paint.py` that allows u
 ### Conclusion
 <!--Results-->
 
-In the first phase of our project, implementing the LeNet-5 convolutional neural network from scratch, we achieved an accuracy of 90% on the MNIST test dataset after training for 4 epochs. This was accomplished using the TEST directive, which allowed us to validate the network's performance on unseen data.
+In the first phase of our project, implementing the LeNet-5 convolutional neural network from scratch, we achieved an accuracy of 90% on the MNIST test dataset after training for 6 epochs. This was accomplished using the TEST directive, which allowed us to validate the network's performance on unseen data.
 
 For the second phase, focused on optimization, we applied various techniques to enhance the efficiency of our CUDA implementation. Our optimized code demonstrated a significant improvement in performance. Specifically, the execution speed of the optimized version was 12 times faster compared to the base implementation. This substantial increase in speed was verified through detailed timing measurements, ensuring a reliable and consistent comparison between different versions of our implementation.
 

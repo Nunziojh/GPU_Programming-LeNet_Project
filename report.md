@@ -181,12 +181,12 @@ The main files of the project are: `leNet.cu`, `leNet.h`.
 
 This file contains the complete implementation of the LeNet-5 architecture. It includes various compilation directives tailored to different usage requirements. All values are parameterized, and depending on the specific directives used, the values of the variables are defined accordingly. The compilation directives present are:
 
-* **TRAIN**: In this case will be taken for performing the training the files from the folder MNIST_Dataset: `train-images.idx3-ubyte` and `train-labels-idx1-ubyte`. Typically the value of epoch_dim and batch_dim are set respectively to 4 and 60.000.
+* **TRAIN**: In this case will be taken for performing the training the files from the folder MNIST_Dataset: `train-images.idx3-ubyte` and `train-labels-idx1-ubyte`. Typically the value of epoch_dim and batch_dim are set respectively to 4 and 60.000. If you are doing the training the code will ask you the number of epochs.
 * **TEST**: compiling with the TEST directive only the forward is considered. The definition of `PARAMETER_FROM_FILE` is automatically defined because in this case they will be used the network parameters already trained saved in the file whose name is defined in `PARAMETER_FILE`. For the test part will be taken from the folder `MNIST_Dataset` the files: `t10k-images.idx3-ubyte` and `t10k-labels-idx1-ubyte`. The value of *epoch_dim* and *batch_dim* are set respectively to 1 and 10.000.
 * **TIME_TEST**: this directive was created to address the need for testing the execution time of the forward and backward passes. Specifically, the execution time will be measured and recorded in a file for *batch_dim* iterations, which is set generally to 1000. Subsequently, the average of these values will be calculated to provide a more reliable method for comparing different versions.
 * **USAGE**: this directive enables the compilation in a way that allows the use of the file `paint.py` to manually input a number and send it to the network. This directive permits using only the forward pass and utilizes the `PARAMETER_FROM_FILE` defined in `PARAMETER_FILE`. Unlike the *TEST* directive, it performs the prediction without having the correct label for comparison, and it sets *batch_dim* to 1.
 * **CHECK_PARAMETER_CORRECTNESS**: is a compilation directive used for debug the correctness of parameters taking from file or randomly generated.
-* **PARAMETER_FILE**: the parameter file from which import the values can be also decided in the compilation fase with the compilation directive -D PARAMETER_FILE="filename.txt".
+* **PARAMETER_FILE**: the parameter file from which import the values can be also decided in the compilation fase with the compilation directive -D PARAMETER_FILE.
 
 **`leNet.h`**
 
@@ -361,19 +361,17 @@ Within the *demo folder*, we developed a Python script, `paint.py` that allows u
 </table>
 
 ### Conclusion
-<!--Results-->
 
 In the first phase of our project, implementing the LeNet-5 convolutional neural network from scratch, we achieved an accuracy of 90% on the MNIST test dataset after training for 6 epochs. This was accomplished using the TEST directive, which allowed us to validate the network's performance on unseen data.
 
-For the second phase, focused on optimization, we applied various techniques to enhance the efficiency of our CUDA implementation. Our optimized code demonstrated a significant improvement in performance. Specifically, the execution speed of the optimized version was 12 times faster compared to the base implementation. This substantial increase in speed was verified through detailed timing measurements, ensuring a reliable and consistent comparison between different versions of our implementation.
+For the second phase, focused on optimization, we applied various techniques to enhance the efficiency of our CUDA implementation. Our optimized code demonstrated a significant improvement in performance. Specifically, the execution speed of the optimized version was 28 times faster compared to the base implementation. This substantial increase in speed was verified through detailed timing measurements, ensuring a reliable and consistent comparison between different versions of our implementation.
 
-
-
-<!-- #### Accuracy -->
-
-<!-- #### Profiling -->
-
-<!-- ### Conclusion -->
+<div id="Figure 5" align="center">
+<figure>
+<img src="Report_images\leNet_comparison.png" width="500" height="300">
+<figcaption>Figure 7: Performace of base and optimized version of our implementation of LeNet-5</figcaption>
+</figure>  
+</div>
 
 # Bibliography
 

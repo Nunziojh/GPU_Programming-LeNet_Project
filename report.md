@@ -175,7 +175,7 @@ The main optimization techniques we used are:
     The vector is then divided arbitrarily by maintaining a pointer to the first available address for each of the variables you want to save. The memory is then initialized by accessing the global memory and a syncthreads is done before going to the actual code. 
 
 ### Code analysis
-The main files of the project are: `leNet.cu`, `leNet.h`.
+The main files of the project are inside the **main folder**: `leNet.cu`, `leNet.h`.
 
 **`leNet.cu`**
 
@@ -190,7 +190,7 @@ This file contains the complete implementation of the LeNet-5 architecture. It i
 
 **`leNet.h`**
 
-In leNet.h, there are the inclusions of our libraries, for device `gpu_functions.cu` and host `cpu_functions.cu`, the inclusions for the main libraries used and the definition of some constant values and some compilation directives.
+In leNet.h, there are the inclusions of our libraries, for device `gpu_functions.cu` and host `cpu_functions.cu`, the inclusions for the main libraries used and the definition of some constant values and some compilation directives. All the functions called are inside the folder *support_functions* and for covolution, matrix product and pooling in their own folder.
 
 In *gpu_functions.cu*, the entire library of GPU functions created for the network is present. The prototypes of these functions are included in the corresponding header file, along with constants used in the code.
 Optimization of library functions has gone through multiple versions, we will analyze each function below.

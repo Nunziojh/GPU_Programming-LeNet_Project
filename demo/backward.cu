@@ -6,7 +6,7 @@
 #include <float.h>
 #include <string.h>
 #include <time.h>
-#include <sys/time.h>
+//#include <sys/time.h>
 
 #include "gpu_functions.h"
 

@@ -1,0 +1,353 @@
+==12716== NVPROF is profiling process 12716, command: .\runnable.exe
+==12716== Profiling application: .\runnable.exe
+==12716== Profiling result:
+"Start","Duration","Grid X","Grid Y","Grid Z","Block X","Block Y","Block Z","Registers Per Thread","Static SMem","Dynamic SMem","Size","Throughput","SrcMemType","DstMemType","Device","Context","Stream","Name","Correlation_ID"
+ms,ms,,,,,,,,B,KB,KB,GB/s,,,,,,,
+582.208400,0.003900,,,,,,,,,,,,,,,,,"cuDeviceGetCount",1
+582.213100,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetCount",2
+685.555800,0.001900,,,,,,,,,,,,,,,,,"cuDeviceGet",3
+685.562800,0.000900,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",4
+685.572600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",5
+685.573400,0.000400,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",6
+685.616200,0.003500,,,,,,,,,,,,,,,,,"cuModuleGetLoadingMode",7
+685.745400,0.000400,,,,,,,,,,,,,,,,,"cuDeviceGetCount",8
+685.746100,0.000300,,,,,,,,,,,,,,,,,"cuDeviceGet",9
+685.750900,0.001000,,,,,,,,,,,,,,,,,"cuDeviceGetName",10
+685.752400,0.000500,,,,,,,,,,,,,,,,,"cuDeviceTotalMem",11
+685.753000,0.000300,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",12
+685.753500,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",13
+685.753800,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",14
+685.754200,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",15
+685.754500,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",16
+685.754800,0.000300,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",17
+685.755300,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",18
+685.755600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",19
+685.756000,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",20
+685.756300,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",21
+685.756700,0.000400,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",22
+685.757300,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",23
+685.757600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",24
+685.757900,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",25
+685.758200,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",26
+685.758600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",27
+685.758900,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",28
+685.759200,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",29
+685.759600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",30
+685.760000,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",31
+685.760300,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",32
+685.760600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",33
+685.760900,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",34
+685.761300,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",35
+685.761600,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",36
+685.761900,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",37
+685.762200,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",38
+685.762500,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",39
+685.762900,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",40
+685.763200,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",41
+685.763500,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",42
+685.763800,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",43
+685.764100,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",44
+685.764400,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",45
+685.764700,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",46
+685.765000,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",47
+685.765400,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",48
+685.765700,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",49
+685.766000,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",50
+685.766400,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",51
+685.766700,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",52
+685.767000,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",53
+685.767300,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",54
+685.767600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",55
+685.767900,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",56
+685.768200,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",57
+685.768500,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",58
+685.768900,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",59
+685.769200,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",60
+685.769500,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",61
+685.769800,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",62
+685.770200,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",63
+685.770500,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",64
+685.770800,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",65
+685.771200,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",66
+685.771500,0.000500,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",67
+685.772100,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",68
+685.772400,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",69
+685.772700,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",70
+685.773100,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",71
+685.773400,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",72
+685.773700,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",73
+685.774100,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",74
+685.774400,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",75
+685.774800,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",76
+685.775100,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",77
+685.775400,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",78
+685.775700,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",79
+685.776000,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",80
+685.776300,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",81
+685.776700,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",82
+685.777000,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",83
+685.777300,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",84
+685.777600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",85
+685.778000,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",86
+685.778300,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",87
+685.778600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",88
+685.779000,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",89
+685.779300,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",90
+685.779600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",91
+685.780000,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",92
+685.780300,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",93
+685.780600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",94
+685.781000,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",95
+685.781400,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",96
+685.781700,0.001100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",97
+685.782900,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",98
+685.783300,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",99
+685.783600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",100
+685.783900,0.001300,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",101
+685.785300,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",102
+685.785600,0.000500,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",103
+685.786200,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",104
+685.786600,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",105
+685.786900,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",106
+685.787600,0.000400,,,,,,,,,,,,,,,,,"cuDeviceGetUuid",107
+685.788100,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",108
+685.788500,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",109
+685.788800,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",110
+685.789100,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",111
+685.789500,0.000700,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",112
+685.790400,0.000500,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",113
+685.791000,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",114
+685.791400,0.003200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",115
+685.794800,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",116
+685.795200,0.000100,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",117
+685.795500,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",118
+685.795800,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",119
+685.796100,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",120
+685.796400,0.003200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",121
+685.799800,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",122
+685.800100,0.000200,,,,,,,,,,,,,,,,,"cuDeviceGetAttribute",123
+685.800800,0.000600,,,,,,,,,,,,,,,,,"cuDeviceGetLuid",124
+685.911200,114.512600,,,,,,,,,,,,,,,,,"cudaMalloc",125
+800.425000,0.006900,,,,,,,,,,,,,,,,,"cudaMalloc",126
+800.432200,0.029700,,,,,,,,,,,,,,,,,"cudaMalloc",127
+800.462100,0.004400,,,,,,,,,,,,,,,,,"cudaMalloc",128
+800.466700,0.003600,,,,,,,,,,,,,,,,,"cudaMalloc",129
+800.470500,0.004000,,,,,,,,,,,,,,,,,"cudaMalloc",130
+800.474600,0.003800,,,,,,,,,,,,,,,,,"cudaMalloc",131
+800.478600,0.002700,,,,,,,,,,,,,,,,,"cudaMalloc",132
+800.481500,0.003500,,,,,,,,,,,,,,,,,"cudaMalloc",133
+800.485200,0.003600,,,,,,,,,,,,,,,,,"cudaMalloc",134
+800.489000,0.003900,,,,,,,,,,,,,,,,,"cudaMalloc",135
+800.493000,0.004400,,,,,,,,,,,,,,,,,"cudaMalloc",136
+800.497600,0.003800,,,,,,,,,,,,,,,,,"cudaMalloc",137
+800.501600,0.002500,,,,,,,,,,,,,,,,,"cudaMalloc",138
+800.504300,0.003400,,,,,,,,,,,,,,,,,"cudaMalloc",139
+800.507900,0.005800,,,,,,,,,,,,,,,,,"cudaMalloc",140
+800.513900,0.003600,,,,,,,,,,,,,,,,,"cudaMalloc",141
+800.517700,0.055400,,,,,,,,,,,,,,,,,"cudaMalloc",142
+800.573300,0.003600,,,,,,,,,,,,,,,,,"cudaMalloc",143
+800.577000,0.003600,,,,,,,,,,,,,,,,,"cudaMalloc",144
+800.580700,0.003500,,,,,,,,,,,,,,,,,"cudaMalloc",145
+800.584400,0.003400,,,,,,,,,,,,,,,,,"cudaMalloc",146
+800.588000,0.003500,,,,,,,,,,,,,,,,,"cudaMalloc",147
+800.591700,0.002500,,,,,,,,,,,,,,,,,"cudaMalloc",148
+800.594400,0.003600,,,,,,,,,,,,,,,,,"cudaMalloc",149
+800.598200,0.003600,,,,,,,,,,,,,,,,,"cudaMalloc",150
+800.602000,0.003500,,,,,,,,,,,,,,,,,"cudaMalloc",151
+800.605700,0.003800,,,,,,,,,,,,,,,,,"cudaMalloc",152
+800.609700,0.003700,,,,,,,,,,,,,,,,,"cudaMalloc",153
+800.613600,0.032800,,,,,,,,,,,,,,,,,"cudaMalloc",154
+800.646600,0.004000,,,,,,,,,,,,,,,,,"cudaMalloc",155
+800.650800,0.003500,,,,,,,,,,,,,,,,,"cudaMalloc",156
+800.654500,0.003400,,,,,,,,,,,,,,,,,"cudaMalloc",157
+800.658200,0.061200,,,,,,,,,,,,,,,,,"cudaMemcpy",158
+800.719800,0.053200,,,,,,,,,,,,,,,,,"cudaMemcpy",159
+800.750998,0.000704,,,,,,,,,,0.585938,0.793741,"Pageable","Device","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy HtoD]",158
+800.773109,0.001120,,,,,,,,,,9.375000,7.982765,"Pageable","Device","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy HtoD]",159
+800.773300,0.049500,,,,,,,,,,,,,,,,,"cudaMemcpy",160
+800.819701,0.062847,,,,,,,,,,187.500000,2.845226,"Pageable","Device","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy HtoD]",160
+800.823200,0.084500,,,,,,,,,,,,,,,,,"cudaMemcpy",161
+800.908000,0.028900,,,,,,,,,,,,,,,,,"cudaMemcpy",162
+800.912179,0.008224,,,,,,,,,,39.375000,4.566017,"Pageable","Device","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy HtoD]",161
+800.935731,0.001152,,,,,,,,,,3.281250,2.716358,"Pageable","Device","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy HtoD]",162
+802.312600,0.049300,,,,,,,,,,,,,,,,,"cudaMemcpy",163
+802.356287,0.000608,,,,,,,,,,4.000000,6.274173,"Pageable","Device","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy HtoD]",163
+802.370200,1.054800,,,,,,,,,,,,,,,,,"cudaLaunchKernel",164
+803.436400,0.151300,,,,,,,,,,,,,,,,,"cudaMemcpy",165
+803.473422,0.006688,1,1,6,32,32,1,32,0,4.585938,,,,,"NVIDIA GeForce MX250 (0)","1","7","convolution_3D_shared(float*, float*, float*, int, int, int, int, int, int, int, int, int, int)",164
+803.555117,0.005792,,,,,,,,,,18.375000,3.025512,"Device","Pageable","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy DtoH]",165
+803.618000,0.849200,,,,,,,,,,,,,,,,,"cudaLaunchKernel",166
+804.460512,0.001440,5,1,1,1024,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","subtraction_scalar_parametric(float*, float, int)",166
+804.469500,0.961000,,,,,,,,,,,,,,,,,"cudaLaunchKernel",167
+805.421970,0.001440,5,1,1,1024,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_scalar_product(float*, float, int)",167
+805.434300,0.036800,,,,,,,,,,,,,,,,,"cudaLaunchKernel",168
+805.467601,0.001856,1,1,6,28,28,1,14,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","tanh(float*, int, int, int)",168
+805.472800,0.794200,,,,,,,,,,,,,,,,,"cudaLaunchKernel",169
+806.261189,0.002528,1,1,2,14,14,5,21,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","avg_pooling_monolithic(float*, float*, int, int, int, int, int, int, int)",169
+806.269300,0.022100,,,,,,,,,,,,,,,,,"cudaLaunchKernel",170
+806.288453,0.001568,1,1,2,14,14,5,14,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","tanh(float*, int, int, int)",170
+806.292900,0.035100,,,,,,,,,,,,,,,,,"cudaLaunchKernel",171
+806.325285,0.018111,1,1,4,14,14,5,32,0,13.968750,,,,,"NVIDIA GeForce MX250 (0)","1","7","convolution_3D_shared(float*, float*, float*, int, int, int, int, int, int, int, int, int, int)",171
+806.329500,0.075100,,,,,,,,,,,,,,,,,"cudaMemcpy",172
+806.384004,0.002048,,,,,,,,,,6.250000,2.910383,"Device","Pageable","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy DtoH]",172
+806.415800,0.035000,,,,,,,,,,,,,,,,,"cudaLaunchKernel",173
+806.447491,0.001312,2,1,1,1024,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","subtraction_scalar_parametric(float*, float, int)",173
+806.452000,0.020100,,,,,,,,,,,,,,,,,"cudaLaunchKernel",174
+806.469762,0.001313,2,1,1,1024,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_scalar_product(float*, float, int)",174
+806.474000,0.018400,,,,,,,,,,,,,,,,,"cudaLaunchKernel",175
+806.491042,0.001376,1,1,2,10,10,10,14,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","tanh(float*, int, int, int)",175
+806.498500,0.024400,,,,,,,,,,,,,,,,,"cudaLaunchKernel",176
+806.520418,0.002112,1,1,1,5,5,16,21,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","avg_pooling_monolithic(float*, float*, int, int, int, int, int, int, int)",176
+806.523900,0.029500,,,,,,,,,,,,,,,,,"cudaLaunchKernel",177
+806.550945,0.001280,1,1,1,5,5,16,14,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","tanh(float*, int, int, int)",177
+806.554600,0.018900,,,,,,,,,,,,,,,,,"cudaLaunchKernel",178
+806.571201,0.055391,1,1,5,5,5,29,32,0,46.875000,,,,,"NVIDIA GeForce MX250 (0)","1","7","convolution_3D_shared(float*, float*, float*, int, int, int, int, int, int, int, int, int, int)",178
+806.574500,0.161600,,,,,,,,,,,,,,,,,"cudaMemcpy",179
+806.722143,0.001056,,,,,,,,,,0.468750,0.423328,"Device","Pageable","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy DtoH]",179
+806.738500,0.033000,,,,,,,,,,,,,,,,,"cudaLaunchKernel",180
+806.767582,0.001184,1,1,1,120,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","subtraction_scalar_parametric(float*, float, int)",180
+806.772400,0.020400,,,,,,,,,,,,,,,,,"cudaLaunchKernel",181
+806.790302,0.001152,1,1,1,120,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_scalar_product(float*, float, int)",181
+806.794200,0.000600,,,,,,,,,,,,,,,,,"cudaLaunchKernel",182
+806.795700,0.794700,,,,,,,,,,,,,,,,,"cudaLaunchKernel",183
+807.585042,0.030944,4,3,1,32,32,1,32,0,8.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_product_shared(float*, float*, float*, int, int, int, int)",183
+807.592800,0.021600,,,,,,,,,,,,,,,,,"cudaLaunchKernel",184
+807.615500,0.018800,,,,,,,,,,,,,,,,,"cudaLaunchKernel",185
+807.618546,0.001472,1,3,1,1,32,1,14,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","tanh(float*, int, int, int)",184
+807.631954,0.007679,3,1,1,32,32,1,32,0,8.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_product_shared(float*, float*, float*, int, int, int, int)",185
+807.635300,0.040800,,,,,,,,,,,,,,,,,"cudaLaunchKernel",186
+807.673457,0.001760,1,1,1,10,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","exponential(float*, int)",186
+807.676700,0.060200,,,,,,,,,,,,,,,,,"cudaMemcpy",187
+807.719184,0.001440,,,,,,,,,,0.039063,0.025870,"Device","Pageable","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy DtoH]",187
+807.745400,0.026600,,,,,,,,,,,,,,,,,"cudaMemcpy",188
+807.769360,0.000192,,,,,,,,,,0.039063,0.194026,"Pageable","Device","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy HtoD]",188
+807.772400,0.021500,,,,,,,,,,,,,,,,,"cudaMemcpy",189
+807.790320,0.000864,,,,,,,,,,0.039063,0.043117,"Pageable","Device","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy HtoD]",189
+807.794800,0.035000,,,,,,,,,,,,,,,,,"cudaLaunchKernel",190
+807.825519,0.001472,1,1,1,10,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","subtraction(float*, float*, float*, int)",190
+807.834800,0.022300,,,,,,,,,,,,,,,,,"cudaLaunchKernel",191
+807.854222,0.003840,3,1,1,32,32,1,32,0,8.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_product_transpose_shared(float*, float*, float*, int, int, int, int)",191
+807.858200,0.039800,,,,,,,,,,,,,,,,,"cudaLaunchKernel",192
+807.895662,0.003648,1,3,1,32,32,1,32,0,8.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_transpose_product_shared(float*, float*, float*, int, int, int, int)",192
+807.899300,0.022200,,,,,,,,,,,,,,,,,"cudaLaunchKernel",193
+807.919501,0.001280,1,3,1,1,32,1,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_dot_product(float*, float*, float*, int, int, int)",193
+807.922400,0.026900,,,,,,,,,,,,,,,,,"cudaLaunchKernel",194
+807.946829,0.001376,1,3,1,1,32,1,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","scalar_subtraction(float*, float*, int, int, int)",194
+807.950200,0.018000,,,,,,,,,,,,,,,,,"cudaLaunchKernel",195
+807.966061,0.010176,4,3,1,32,32,1,32,0,8.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_product_transpose_shared(float*, float*, float*, int, int, int, int)",195
+807.969000,0.018100,,,,,,,,,,,,,,,,,"cudaLaunchKernel",196
+807.985516,0.024256,3,4,1,32,32,1,32,0,8.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_transpose_product_shared(float*, float*, float*, int, int, int, int)",196
+807.987900,0.017600,,,,,,,,,,,,,,,,,"cudaLaunchKernel",197
+808.006200,0.017600,,,,,,,,,,,,,,,,,"cudaLaunchKernel",198
+808.012460,0.001152,1,4,1,1,32,1,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_dot_product(float*, float*, float*, int, int, int)",197
+808.022220,0.001152,1,4,1,1,32,1,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","scalar_subtraction(float*, float*, int, int, int)",198
+808.024500,0.024900,,,,,,,,,,,,,,,,,"cudaLaunchKernel",199
+808.047692,0.001183,1,4,1,1,32,1,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_dot_product(float*, float*, float*, int, int, int)",199
+808.050600,0.022200,,,,,,,,,,,,,,,,,"cudaLaunchKernel",200
+808.070507,0.023712,1,16,3,25,1,40,27,0,0.253906,,,,,"NVIDIA GeForce MX250 (0)","1","7","convolution_forNOutChannels_shared(float*, float*, float*, int, int, int, int, int, int, int, int, int, int, int)",200
+808.074100,0.751900,,,,,,,,,,,,,,,,,"cudaLaunchKernel",201
+808.820288,0.040032,1,1,2,5,5,10,40,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","full_Convolution(float*, float*, float*, int, int, int, int, int, int, int, int, int, int, int)",201
+808.833000,0.021400,,,,,,,,,,,,,,,,,"cudaLaunchKernel",202
+808.855600,0.018300,,,,,,,,,,,,,,,,,"cudaLaunchKernel",203
+808.862944,0.001536,1,1,1,5,5,16,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_dot_product(float*, float*, float*, int, int, int)",202
+808.871488,0.001312,1,1,1,5,5,16,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","scalar_subtraction(float*, float*, int, int, int)",203
+808.874700,0.017800,,,,,,,,,,,,,,,,,"cudaLaunchKernel",204
+808.890271,0.001248,1,1,1,5,5,16,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_dot_product(float*, float*, float*, int, int, int)",204
+808.893600,0.026800,,,,,,,,,,,,,,,,,"cudaLaunchKernel",205
+808.917439,0.005248,1,1,1,5,5,16,32,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","inverse_avg_pooling_monolithic(float*, float*, float*, int, int, int, int, int, int, int)",205
+808.921400,0.017900,,,,,,,,,,,,,,,,,"cudaLaunchKernel",206
+808.938143,0.001280,1,1,2,10,10,10,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_dot_product(float*, float*, float*, int, int, int)",206
+808.940100,0.024000,,,,,,,,,,,,,,,,,"cudaLaunchKernel",207
+808.962014,0.001280,1,1,2,10,10,10,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","scalar_subtraction(float*, float*, int, int, int)",207
+808.964800,0.018200,,,,,,,,,,,,,,,,,"cudaLaunchKernel",208
+808.980894,0.001248,1,1,2,10,10,10,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_dot_product(float*, float*, float*, int, int, int)",208
+808.984100,0.031900,,,,,,,,,,,,,,,,,"cudaLaunchKernel",209
+809.013278,0.208124,2,2,1,10,10,6,40,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","full_Convolution(float*, float*, float*, int, int, int, int, int, int, int, int, int, int, int)",209
+809.017000,0.020300,,,,,,,,,,,,,,,,,"cudaLaunchKernel",210
+809.038300,0.017900,,,,,,,,,,,,,,,,,"cudaLaunchKernel",211
+809.056900,0.017300,,,,,,,,,,,,,,,,,"cudaLaunchKernel",212
+809.078500,0.018500,,,,,,,,,,,,,,,,,"cudaLaunchKernel",213
+809.098000,0.017800,,,,,,,,,,,,,,,,,"cudaLaunchKernel",214
+809.116700,0.017500,,,,,,,,,,,,,,,,,"cudaLaunchKernel",215
+809.134900,0.017600,,,,,,,,,,,,,,,,,"cudaLaunchKernel",216
+809.153100,0.020700,,,,,,,,,,,,,,,,,"cudaLaunchKernel",217
+809.174800,0.019100,,,,,,,,,,,,,,,,,"cudaLaunchKernel",218
+809.194700,0.020800,,,,,,,,,,,,,,,,,"cudaLaunchKernel",219
+809.216300,0.019100,,,,,,,,,,,,,,,,,"cudaLaunchKernel",220
+809.227034,0.036864,1,6,4,196,1,5,27,0,2.718750,,,,,"NVIDIA GeForce MX250 (0)","1","7","convolution_forNOutChannels_shared(float*, float*, float*, int, int, int, int, int, int, int, int, int, int, int)",210
+809.236200,0.012200,,,,,,,,,,,,,,,,,"cudaLaunchKernel",221
+809.249000,0.010600,,,,,,,,,,,,,,,,,"cudaLaunchKernel",222
+809.260300,0.010900,,,,,,,,,,,,,,,,,"cudaLaunchKernel",223
+809.266586,0.001280,1,1,2,14,14,5,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_dot_product(float*, float*, float*, int, int, int)",211
+809.270138,0.001248,1,1,2,14,14,5,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","scalar_subtraction(float*, float*, int, int, int)",212
+809.271800,0.010800,,,,,,,,,,,,,,,,,"cudaLaunchKernel",224
+809.273786,0.001248,1,1,2,14,14,5,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_dot_product(float*, float*, float*, int, int, int)",213
+809.277370,0.007103,1,1,4,14,14,5,32,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","inverse_avg_pooling_monolithic(float*, float*, float*, int, int, int, int, int, int, int)",214
+809.283200,0.015500,,,,,,,,,,,,,,,,,"cudaLaunchKernel",225
+809.286778,0.001439,1,1,6,28,28,1,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_dot_product(float*, float*, float*, int, int, int)",215
+809.290489,0.001409,1,1,6,28,28,1,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","scalar_subtraction(float*, float*, int, int, int)",216
+809.294361,0.001440,1,1,6,28,28,1,9,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_dot_product(float*, float*, float*, int, int, int)",217
+809.298073,0.024896,1,1,6,1024,1,1,27,0,7.062500,,,,,"NVIDIA GeForce MX250 (0)","1","7","convolution_forNOutChannels_shared(float*, float*, float*, int, int, int, int, int, int, int, int, int, int, int)",218
+809.299200,0.093000,,,,,,,,,,,,,,,,,"cudaLaunchKernel",226
+809.325081,0.001376,1,1,1,150,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_scalar_product(float*, float, int)",219
+809.329049,0.001536,1,1,1,150,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","subtraction(float*, float*, float*, int)",220
+809.342105,0.001216,3,1,1,1024,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_scalar_product(float*, float, int)",221
+809.347737,0.001279,3,1,1,1024,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","subtraction(float*, float*, float*, int)",222
+809.363321,0.010079,47,1,1,1024,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_scalar_product(float*, float, int)",223
+809.376248,0.011456,47,1,1,1024,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","subtraction(float*, float*, float*, int)",224
+809.389976,0.003008,10,1,1,1024,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_scalar_product(float*, float, int)",225
+809.393000,0.034600,,,,,,,,,,,,,,,,,"cudaLaunchKernel",227
+809.395576,0.003840,10,1,1,1024,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","subtraction(float*, float*, float*, int)",226
+809.425400,0.001504,1,1,1,840,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","matrix_scalar_product(float*, float, int)",227
+809.428300,0.024600,,,,,,,,,,,,,,,,,"cudaLaunchKernel",228
+809.450999,0.001536,1,1,1,840,1,1,8,0,0.000000,,,,,"NVIDIA GeForce MX250 (0)","1","7","subtraction(float*, float*, float*, int)",228
+810.241100,0.066000,,,,,,,,,,,,,,,,,"cudaMemcpy",229
+810.283403,0.001152,,,,,,,,,,0.585938,0.485064,"Device","Pageable","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy DtoH]",229
+810.420700,0.040000,,,,,,,,,,,,,,,,,"cudaMemcpy",230
+810.450473,0.002720,,,,,,,,,,9.375000,3.287021,"Device","Pageable","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy DtoH]",230
+812.438600,0.253200,,,,,,,,,,,,,,,,,"cudaMemcpy",231
+812.489099,0.057727,,,,,,,,,,187.500000,3.097579,"Device","Pageable","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy DtoH]",231
+844.662700,0.164200,,,,,,,,,,,,,,,,,"cudaMemcpy",232
+844.795413,0.011999,,,,,,,,,,39.375000,3.129505,"Device","Pageable","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy DtoH]",232
+851.756700,0.145400,,,,,,,,,,,,,,,,,"cudaMemcpy",233
+851.888846,0.001184,,,,,,,,,,3.281250,2.642942,"Device","Pageable","NVIDIA GeForce MX250 (0)","1","7","[CUDA memcpy DtoH]",233
+879.819000,0.023000,,,,,,,,,,,,,,,,,"cudaFree",234
+879.842200,0.006000,,,,,,,,,,,,,,,,,"cudaFree",235
+879.848400,0.003200,,,,,,,,,,,,,,,,,"cudaFree",236
+879.851700,0.003900,,,,,,,,,,,,,,,,,"cudaFree",237
+879.855700,0.004200,,,,,,,,,,,,,,,,,"cudaFree",238
+879.860000,0.002700,,,,,,,,,,,,,,,,,"cudaFree",239
+879.862900,0.004500,,,,,,,,,,,,,,,,,"cudaFree",240
+879.867600,0.004300,,,,,,,,,,,,,,,,,"cudaFree",241
+879.872100,0.003100,,,,,,,,,,,,,,,,,"cudaFree",242
+879.875300,0.003600,,,,,,,,,,,,,,,,,"cudaFree",243
+879.879100,0.003600,,,,,,,,,,,,,,,,,"cudaFree",244
+879.882800,0.003500,,,,,,,,,,,,,,,,,"cudaFree",245
+879.886500,0.003100,,,,,,,,,,,,,,,,,"cudaFree",246
+879.889800,0.002900,,,,,,,,,,,,,,,,,"cudaFree",247
+879.892800,0.003000,,,,,,,,,,,,,,,,,"cudaFree",248
+879.896000,0.003100,,,,,,,,,,,,,,,,,"cudaFree",249
+879.899300,0.003700,,,,,,,,,,,,,,,,,"cudaFree",250
+879.903100,0.003500,,,,,,,,,,,,,,,,,"cudaFree",251
+879.906800,0.003200,,,,,,,,,,,,,,,,,"cudaFree",252
+879.910100,0.003200,,,,,,,,,,,,,,,,,"cudaFree",253
+879.913400,0.002800,,,,,,,,,,,,,,,,,"cudaFree",254
+879.916300,0.002500,,,,,,,,,,,,,,,,,"cudaFree",255
+879.919000,0.002300,,,,,,,,,,,,,,,,,"cudaFree",256
+879.921500,0.002700,,,,,,,,,,,,,,,,,"cudaFree",257
+879.924300,0.002800,,,,,,,,,,,,,,,,,"cudaFree",258
+879.927300,0.003200,,,,,,,,,,,,,,,,,"cudaFree",259
+879.930600,0.002800,,,,,,,,,,,,,,,,,"cudaFree",260
+879.933600,0.003500,,,,,,,,,,,,,,,,,"cudaFree",261
+879.937200,0.003200,,,,,,,,,,,,,,,,,"cudaFree",262
+879.940600,0.003900,,,,,,,,,,,,,,,,,"cudaFree",263
+879.944600,0.003100,,,,,,,,,,,,,,,,,"cudaFree",264
+879.947900,0.002600,,,,,,,,,,,,,,,,,"cudaFree",265
+879.950700,0.460900,,,,,,,,,,,,,,,,,"cudaFree",266
+880.453700,0.070900,,,,,,,,,,,,,,,,,"cuLibraryUnload",267
+880.526300,0.028100,,,,,,,,,,,,,,,,,"cuLibraryUnload",268
+880.555400,0.037200,,,,,,,,,,,,,,,,,"cuLibraryUnload",269
+880.593800,0.020400,,,,,,,,,,,,,,,,,"cuLibraryUnload",270
+880.615100,0.026900,,,,,,,,,,,,,,,,,"cuLibraryUnload",271
+880.642700,0.024000,,,,,,,,,,,,,,,,,"cuLibraryUnload",272
+880.674400,27.459600,,,,,,,,,,,,,,,,,"cuDevicePrimaryCtxRelease",273

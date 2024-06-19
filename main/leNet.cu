@@ -259,7 +259,8 @@ int main(int argc, char **argv){
      * Inizio del ciclo per fare apprendimento. L'indice da usare è il numero di epoche
      * per le quali si vuole addestrare la rete.
     */
-
+    epoch_dim = 1;
+    batch_dim = 1;
     for(int epoch = 0; epoch < epoch_dim; epoch++){
         for(int batch = 0; batch < batch_dim; batch++){
 

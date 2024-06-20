@@ -24,14 +24,14 @@ In the *main* folder you need to compile ` leNet.cu ` with the following directi
 
 - __CHECK_PARAMETER_CORRECTNESS__ Is a debugging option that give the possibility to double check that the parameter values are the intended ones.
 
-- __TIME_TEST__ Is a directive to microsecond precision on the execution time.
+- __TIME_TEST__ Is a directive to print execution with microsecond precision.
 
-**BEWARE** that while training the network will report the values of the losses, the predictions, the execution time (in seconds) and the values of the parameter (at the end of each epoch), but compiling with __TEST_TIME__ you lose all this information so may want to hard code the ` epoch_number ` and the ` batch_number ` and use this directives only to execute few iterations.
+**BEWARE** that, while training, the network will report the values of the losses, the predictions, the execution time (in seconds) and the values of the parameter (at the end of each epoch), but compiling with __TEST_TIME__ you lose all this information so may want to hard code the ` epoch_number ` and the ` batch_number ` and use this directives only to execute few iterations.
 
 After specify the directives to use, you also need to link all the source files that the main in going to use, but theme are always the same.
 
-> Ex. To train the network from scratch you nedd to compile with:
->> `  nvcc -D TRAIN leNet.cu support_functions/cpu_functions.cu support_functions/gpu_functions.cu ../pooling/v3/monolithic.cu ../matrix_product/v1/base.cu ../matrix_product/v2/shared.cu ../convolution/v5/monolithic_shared.cu ../convolution/v4/monolithic.cu `
+Ex. To train the network from scratch you nedd to compile with:
+> `  nvcc -D TRAIN leNet.cu support_functions/cpu_functions.cu support_functions/gpu_functions.cu ../pooling/v3/monolithic.cu ../matrix_product/v1/base.cu ../matrix_product/v2/shared.cu ../convolution/v5/monolithic_shared.cu ../convolution/v4/monolithic.cu `
 
 Also you may want to change the ` LEARNING_RATE ` and the ` LOSS_MULTIPLIER ` values in ` leNet.h `
 
@@ -46,5 +46,5 @@ While compiling you also need to remember to add the relative path to the ` .cu 
 
 **IMPORTANT**: before compiling change the dimensions of the inputs and outputs in the main ` .h ` file accordingly to the chosen function needs.
 
-> Ex. To test the *convolution_3D_shared* function, you need to be in */convolution*, change the dimension of inputs and output in *convolution_functions.h* to your desire and compile with the following command:<br>
->> ` nvcc -D DEBUG_PRINT -D MONOLITHIC_S_F convolution_test.cu v5/monolithic_shared.cu `
+Ex. To test the *convolution_3D_shared* function, you need to be in */convolution*, change the dimension of inputs and output in *convolution_functions.h* to your desire and compile with the following command:<br>
+> ` nvcc -D DEBUG_PRINT -D MONOLITHIC_S_F convolution_test.cu v5/monolithic_shared.cu `

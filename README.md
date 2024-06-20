@@ -17,4 +17,4 @@ For more information read the report [GPU Programming LeNet Project Report](http
 
 Here there are the slides of the [presentation](https://www.canva.com/design/DAGIMevrHN4/FUOQMDrnssrWq8jbJiQHgg/edit?utm_content=DAGIMevrHN4&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton).
 
-For compiling and testing purposes [compilation options](https://github.com/Nunziojh/GPU_Programming-LeNet_Project/blob/usefull_tips.txt)
+For compiling and testing purposes [compilation options](https://github.com/Nunziojh/GPU_Programming-LeNet_Project/blob/main/usefull_tips.txt)

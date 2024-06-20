@@ -16,3 +16,5 @@ The project is essentially divided into two phases: the first involves implement
 For more information read the report [GPU Programming LeNet Project Report](https://github.com/Nunziojh/GPU_Programming-LeNet_Project/blob/main/report.md)
 
 Here there are the slides of the [presentation](https://www.canva.com/design/DAGIMevrHN4/FUOQMDrnssrWq8jbJiQHgg/edit?utm_content=DAGIMevrHN4&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton).
+
+For compiling and testing purposes [compilation options](https://github.com/Nunziojh/GPU_Programming-LeNet_Project/blob/usefull_tips.txt)
